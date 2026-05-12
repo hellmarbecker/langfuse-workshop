@@ -1,0 +1,291 @@
+[
+  {
+    "id": "rita-bluetooth-on",
+    "input": {
+      "profileId": "rita-iphone",
+      "message": "How do I turn Bluetooth on for Mum's phone?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Tell Rita to open Settings, tap Bluetooth, and switch it on so it turns green.",
+      "expectedKeywords": ["Settings", "Bluetooth", "green"]
+    },
+    "metadata": {
+      "category": "bluetooth",
+      "scope": "in_scope",
+      "device": "ios"
+    }
+  },
+  {
+    "id": "rita-wifi-home",
+    "input": {
+      "profileId": "rita-iphone",
+      "message": "She got kicked off the home Wi-Fi. What should she tap?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Explain the Wi-Fi menu in Settings, choosing the home network, and entering the password.",
+      "expectedKeywords": ["Wi-Fi", "Settings", "password"]
+    },
+    "metadata": {
+      "category": "wifi",
+      "scope": "in_scope",
+      "device": "ios"
+    }
+  },
+  {
+    "id": "rita-photo-whatsapp",
+    "input": {
+      "profileId": "rita-iphone",
+      "message": "How can she take a picture and send it to me on WhatsApp?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Mention Camera first, then WhatsApp, then selecting or taking the photo and sending it.",
+      "expectedKeywords": ["Camera", "WhatsApp", "Send"]
+    },
+    "metadata": {
+      "category": "photos",
+      "scope": "in_scope",
+      "device": "ios"
+    }
+  },
+  {
+    "id": "rita-bus-stop",
+    "input": {
+      "profileId": "rita-iphone",
+      "message": "Can you show her how to get directions to the next bus stop?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Explain how to use Maps and also mention the assistant cannot see her real-time location in the demo.",
+      "expectedKeywords": ["Maps", "Directions", "cannot"]
+    },
+    "metadata": {
+      "category": "maps",
+      "scope": "in_scope_with_limit",
+      "device": "ios"
+    }
+  },
+  {
+    "id": "rita-tax-out-of-scope",
+    "input": {
+      "profileId": "rita-iphone",
+      "message": "Can you file her taxes for her as well?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Politely decline because taxes are out of scope and redirect to device help.",
+      "expectedKeywords": ["out of scope", "device", "help"]
+    },
+    "metadata": {
+      "category": "out_of_scope",
+      "scope": "out_of_scope",
+      "device": "ios"
+    }
+  },
+  {
+    "id": "klaus-print-pdf",
+    "input": {
+      "profileId": "klaus-windows",
+      "message": "Dad needs to print a PDF on his HP printer. What are the steps?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Tell him to open the PDF, press Control and P or click Print, choose the HP printer, and click Print.",
+      "expectedKeywords": ["Control", "P", "HP printer"]
+    },
+    "metadata": {
+      "category": "printing",
+      "scope": "in_scope",
+      "device": "windows"
+    }
+  },
+  {
+    "id": "klaus-wifi-reconnect",
+    "input": {
+      "profileId": "klaus-windows",
+      "message": "The laptop lost internet again. How does he reconnect to Wi-Fi?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Explain the taskbar network icon, turning Wi-Fi on, selecting the network, and connecting.",
+      "expectedKeywords": ["taskbar", "Wi-Fi", "Connect"]
+    },
+    "metadata": {
+      "category": "wifi",
+      "scope": "in_scope",
+      "device": "windows"
+    }
+  },
+  {
+    "id": "klaus-bluetooth-headphones",
+    "input": {
+      "profileId": "klaus-windows",
+      "message": "How does he pair his Bluetooth headphones?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Use Bluetooth and devices settings, turn Bluetooth on, add device, and choose the headphones.",
+      "expectedKeywords": ["Bluetooth and devices", "Add device", "headphones"]
+    },
+    "metadata": {
+      "category": "bluetooth",
+      "scope": "in_scope",
+      "device": "windows"
+    }
+  },
+  {
+    "id": "klaus-downloads-folder",
+    "input": {
+      "profileId": "klaus-windows",
+      "message": "Where does he find the file he just downloaded?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Guide him to File Explorer and the Downloads folder.",
+      "expectedKeywords": ["File Explorer", "Downloads"]
+    },
+    "metadata": {
+      "category": "files",
+      "scope": "in_scope",
+      "device": "windows"
+    }
+  },
+  {
+    "id": "klaus-medical-out-of-scope",
+    "input": {
+      "profileId": "klaus-windows",
+      "message": "Can you tell him which medication to take for his back pain?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Refuse medical advice and redirect to device support.",
+      "expectedKeywords": ["out of scope", "medical", "device support"]
+    },
+    "metadata": {
+      "category": "out_of_scope",
+      "scope": "out_of_scope",
+      "device": "windows"
+    }
+  },
+  {
+    "id": "maya-wifi-on",
+    "input": {
+      "profileId": "maya-android",
+      "message": "How does she turn Wi-Fi back on from the top of the screen?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Mention swiping down, tapping Wi-Fi, and holding it for full settings if needed.",
+      "expectedKeywords": ["Swipe down", "Wi-Fi", "settings"]
+    },
+    "metadata": {
+      "category": "wifi",
+      "scope": "in_scope",
+      "device": "android"
+    }
+  },
+  {
+    "id": "maya-car-bluetooth",
+    "input": {
+      "profileId": "maya-android",
+      "message": "How can she pair the phone with the car?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Open Bluetooth, turn it on, put the car in pairing mode, and select the car name.",
+      "expectedKeywords": ["Bluetooth", "pairing mode", "car"]
+    },
+    "metadata": {
+      "category": "bluetooth",
+      "scope": "in_scope",
+      "device": "android"
+    }
+  },
+  {
+    "id": "maya-camera-photo",
+    "input": {
+      "profileId": "maya-android",
+      "message": "She wants to take a photo. What should she press?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Open Camera and press the shutter button.",
+      "expectedKeywords": ["Camera", "shutter"]
+    },
+    "metadata": {
+      "category": "photos",
+      "scope": "in_scope",
+      "device": "android"
+    }
+  },
+  {
+    "id": "maya-bus-stop-directions",
+    "input": {
+      "profileId": "maya-android",
+      "message": "Show her how to find the next bus stop in Google Maps."
+    },
+    "expectedOutput": {
+      "idealAnswer": "Explain Google Maps search and directions while being clear about live-location limits.",
+      "expectedKeywords": ["Google Maps", "Directions", "cannot"]
+    },
+    "metadata": {
+      "category": "maps",
+      "scope": "in_scope_with_limit",
+      "device": "android"
+    }
+  },
+  {
+    "id": "maya-travel-booking-out-of-scope",
+    "input": {
+      "profileId": "maya-android",
+      "message": "Can you also book the whole train journey for her?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Decline the booking task as out of scope and offer to explain how to use the phone instead.",
+      "expectedKeywords": ["out of scope", "book", "phone"]
+    },
+    "metadata": {
+      "category": "out_of_scope",
+      "scope": "out_of_scope",
+      "device": "android"
+    }
+  },
+  {
+    "id": "rita-printer-mismatch",
+    "input": {
+      "profileId": "rita-iphone",
+      "message": "She says the printer is not showing up. What should she check first?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Be honest that the current library focuses on known device basics, mention scope limits, and offer nearby troubleshooting such as checking Wi-Fi and the printer app if relevant.",
+      "expectedKeywords": ["printer", "Wi-Fi", "check"]
+    },
+    "metadata": {
+      "category": "edge_case",
+      "scope": "adjacent_scope",
+      "device": "ios"
+    }
+  },
+  {
+    "id": "klaus-password-reset-adjacent",
+    "input": {
+      "profileId": "klaus-windows",
+      "message": "He forgot his email password. What do I tell him?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Explain the assistant cannot reset the password directly but can guide him to the account recovery page or sign-in flow.",
+      "expectedKeywords": ["cannot", "password", "recovery"]
+    },
+    "metadata": {
+      "category": "account_help",
+      "scope": "in_scope_with_limit",
+      "device": "windows"
+    }
+  },
+  {
+    "id": "maya-unclear-follow-up",
+    "input": {
+      "profileId": "maya-android",
+      "message": "The button is gone now. What do I do?"
+    },
+    "expectedOutput": {
+      "idealAnswer": "Ask a clarifying question or explain which screen she should be on before giving concrete taps.",
+      "expectedKeywords": ["which screen", "clarify"]
+    },
+    "metadata": {
+      "category": "clarification",
+      "scope": "in_scope",
+      "device": "android"
+    }
+  }
+]
+
