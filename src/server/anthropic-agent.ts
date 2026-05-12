@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { propagateAttributes, startActiveObservation } from "@langfuse/tracing";
 import type { ChatMessage, ChatRequest, ChatResponse } from "../shared/types";
 import { env } from "./env";
 import { resolveSupportPrompt } from "./prompt-manager";
@@ -41,72 +42,156 @@ export async function runSupportConversation(
     throw new Error(`Unknown profile: ${request.profileId}`);
   }
 
-  const prompt = await resolveSupportPrompt(profile);
-  const transcript = toAnthropicMessages(request.messages);
-  const usedTools = new Set<string>();
-  let finalAnswer = "";
+  return startActiveObservation(
+    "parent-support-chat-turn",
+    async (agentSpan) => {
+      return propagateAttributes(
+        {
+          userId: request.userId ?? `workshop-${profile.id}`,
+          sessionId: request.sessionId,
+          traceName: "parent-support-chat-turn",
+          tags: ["langfuse-workshop", "parent-support"],
+          version: "0.1.0",
+          metadata: {
+            profileId: profile.id,
+            profileLabel: profile.label,
+            profileDevice: profile.primaryDevice
+          }
+        },
+        async () => {
+          const prompt = await resolveSupportPrompt(profile);
+          const transcript = toAnthropicMessages(request.messages);
+          const usedTools = new Set<string>();
 
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    const response = await anthropic.messages.create({
-      model: env.anthropicModel,
-      max_tokens: 700,
-      temperature: 0.2,
-      system: prompt.promptText,
-      messages: transcript,
-      tools: TOOL_DEFINITIONS
-    });
+          agentSpan.update({
+            input: {
+              profileId: profile.id,
+              profileLabel: profile.label,
+              systemPrompt: prompt.promptText,
+              promptSource: prompt.promptSource,
+              conversationHistory: request.messages,
+              lastUserMessage: getLastUserMessage(request.messages)
+            }
+          });
 
-    transcript.push({
-      role: "assistant",
-      content: response.content as unknown as string
-    });
+          let finalAnswer = "";
 
-    const toolUses = response.content.filter((block) => block.type === "tool_use");
+          for (let attempt = 0; attempt < 4; attempt += 1) {
+            const generation = agentSpan.startObservation(
+              "anthropic-message",
+              {
+                model: env.anthropicModel,
+                input: {
+                  system: prompt.promptText,
+                  messages: transcript,
+                  tools: TOOL_DEFINITIONS
+                }
+              },
+              { asType: "generation" }
+            );
 
-    if (toolUses.length === 0) {
-      finalAnswer = readTextBlocks(response.content);
-      break;
-    }
+            if (prompt.linkedPrompt) {
+              generation.update({ prompt: prompt.linkedPrompt });
+            }
 
-    const toolResults = [];
+            const response = await anthropic.messages.create({
+              model: env.anthropicModel,
+              max_tokens: 700,
+              temperature: 0.2,
+              system: prompt.promptText,
+              messages: transcript,
+              tools: TOOL_DEFINITIONS
+            });
 
-    for (const toolUse of toolUses) {
-      usedTools.add(toolUse.name);
+            generation.update({
+              output: response.content,
+              usageDetails: {
+                input: response.usage.input_tokens,
+                output: response.usage.output_tokens
+              },
+              metadata: {
+                stopReason: response.stop_reason ?? null,
+                promptSource: prompt.promptSource
+              }
+            });
+            generation.end();
 
-      const result = await executeTool(
-        toolUse.name,
-        toolUse.input as Record<string, unknown>
+            transcript.push({
+              role: "assistant",
+              content: response.content as unknown as string
+            });
+
+            const toolUses = response.content.filter((block) => block.type === "tool_use");
+
+            if (toolUses.length === 0) {
+              finalAnswer = readTextBlocks(response.content);
+              break;
+            }
+
+            const toolResults = [];
+
+            for (const toolUse of toolUses) {
+              usedTools.add(toolUse.name);
+
+              const toolSpan = agentSpan.startObservation(
+                toolUse.name,
+                {
+                  input: toolUse.input as Record<string, unknown>
+                },
+                { asType: "tool" }
+              );
+
+              const result = await executeTool(
+                toolUse.name,
+                toolUse.input as Record<string, unknown>
+              );
+
+              toolSpan.update({ output: result });
+              toolSpan.end();
+
+              toolResults.push({
+                type: "tool_result",
+                tool_use_id: toolUse.id,
+                content: JSON.stringify(result, null, 2)
+              });
+            }
+
+            transcript.push({
+              role: "user",
+              content: toolResults as unknown as string
+            });
+          }
+
+          if (!finalAnswer) {
+            finalAnswer =
+              "I ran out of room before finishing that answer. Please ask the question once more in a slightly shorter way.";
+          }
+
+          agentSpan.update({
+            output: {
+              answer: finalAnswer,
+              promptSource: prompt.promptSource,
+              usedTools: [...usedTools]
+            }
+          });
+
+          return {
+            span: agentSpan,
+            result: {
+              answer: finalAnswer,
+              promptSource: prompt.promptSource,
+              usedTools: [...usedTools],
+              traceMeta: {
+                profileId: profile.id,
+                profileLabel: profile.label,
+                model: env.anthropicModel
+              }
+            }
+          };
+        }
       );
-
-      toolResults.push({
-        type: "tool_result",
-        tool_use_id: toolUse.id,
-        content: JSON.stringify(result, null, 2)
-      });
-    }
-
-    transcript.push({
-      role: "user",
-      content: toolResults as unknown as string
-    });
-  }
-
-  if (!finalAnswer) {
-    finalAnswer =
-      "I ran out of room before finishing that answer. Please ask the question once more in a slightly shorter way.";
-  }
-
-  return {
-    span: null,
-    result: {
-      answer: finalAnswer,
-      promptSource: prompt.promptSource,
-      usedTools: [...usedTools],
-      traceMeta: {
-        profileId: profile.id,
-        profileLabel: profile.label,
-        model: env.anthropicModel
-      }
-    }
-  };
+    },
+    { asType: "agent" }
+  );
 }
+
