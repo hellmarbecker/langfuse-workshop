@@ -62,19 +62,101 @@ Without this swap, the wrapped `openai` is a dead variable and no traces are emi
 
 ### `src/server/support-agent.ts`
 
-Wrap the chat-turn function with `observe(...)` so each turn becomes one root observation:
+Add the import:
 
 ```ts
 import { observe } from "@langfuse/tracing";
+```
 
+Then **replace your existing `runSupportConversation` function entirely** with the block below — same body, just relocated inside `observe(...)`, with a thin re-export beneath:
+
+```ts
 const observedRunSupportConversation = observe(
   async (request: ChatRequest): Promise<ChatResponse> => {
-    // existing logic, including observeOpenAI(...)
+    const context = getSupportContext();
+    const promptText = compileLocalPrompt(
+      getLocalPromptTemplate("baseline"),
+      buildPromptVariables(context)
+    );
+    const transcript: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      {
+        role: "system",
+        content: promptText
+      },
+      ...toOpenAIMessages(request.messages)
+    ];
+    const usedTools = new Set<string>();
+
+    let finalAnswer = "";
+
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const response = await openai.chat.completions.create({
+        model: env.openaiModel,
+        temperature: 0.2,
+        messages: transcript,
+        tools: TOOL_DEFINITIONS,
+        tool_choice: "auto"
+      });
+
+      const message = response.choices[0]?.message;
+
+      if (!message) {
+        throw new Error("OpenAI returned no assistant message.");
+      }
+
+      transcript.push(message as OpenAI.Chat.Completions.ChatCompletionMessageParam);
+
+      const toolCalls = message.tool_calls ?? [];
+
+      if (toolCalls.length === 0) {
+        finalAnswer = readAssistantText(message);
+        break;
+      }
+
+      for (const toolCall of toolCalls) {
+        if (toolCall.type !== "function") {
+          continue;
+        }
+
+        usedTools.add(toolCall.function.name);
+
+        const parsedArguments = parseToolArguments(toolCall.function.arguments);
+        const result =
+          parsedArguments === null
+            ? {
+                ok: false,
+                error: `The tool arguments for ${toolCall.function.name} were not valid JSON.`
+              }
+            : await executeTool(toolCall.function.name, parsedArguments);
+
+        transcript.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(result)
+        });
+      }
+    }
+
+    if (!finalAnswer) {
+      finalAnswer =
+        "I ran out of room before finishing that answer. Please ask the question once more in a slightly shorter way.";
+    }
+
+    return {
+      answer: finalAnswer,
+      promptSource: "local",
+      usedTools: [...usedTools],
+      traceMeta: {
+        contextId: context.id,
+        contextLabel: context.label,
+        model: env.openaiModel
+      }
+    };
   },
   { name: "dad-it-support-chat-turn", asType: "agent" }
 );
 
-export async function runSupportConversation(request: ChatRequest) {
+export async function runSupportConversation(request: ChatRequest): Promise<ChatResponse> {
   return observedRunSupportConversation(request);
 }
 ```
@@ -83,23 +165,62 @@ export async function runSupportConversation(request: ChatRequest) {
 
 ### `src/server/tools.ts`
 
-Wrap each tool body so tool calls become their own spans:
+Add the import and **replace the existing `executeTool` block** with the three definitions below. `TOOL_DEFINITIONS` at the top of the file stays untouched.
 
 ```ts
 import { observe } from "@langfuse/tracing";
 
 const getSupportContextTool = observe(
-  async () => { /* existing body */ },
+  async () => {
+    const context = getSupportContext();
+
+    return {
+      ok: true,
+      context: {
+        id: context.id,
+        label: context.label,
+        devices: context.devices,
+        deviceSummary: context.deviceSummary,
+        responseStyle: context.responseStyle,
+        scopeHighlights: context.scopeHighlights,
+        notableApps: context.notableApps
+      }
+    };
+  },
   { name: "get_support_context", asType: "tool" }
 );
 
 const searchHelpLibraryTool = observe(
-  async (input: { question: string }) => { /* existing body */ },
+  async (input: { question: string }) => {
+    const guides = searchGuides(input.question);
+
+    return {
+      ok: true,
+      results: guides.map((guide) => ({
+        id: guide.id,
+        title: guide.title,
+        summary: guide.summary,
+        steps: guide.steps,
+        caution: guide.caution ?? null
+      }))
+    };
+  },
   { name: "search_help_library", asType: "tool" }
 );
-```
 
-Make `executeTool(...)` delegate to those wrapped functions.
+export async function executeTool(name: string, input: Record<string, unknown>): Promise<ToolResult> {
+  switch (name) {
+    case "get_support_context":
+      return getSupportContextTool();
+
+    case "search_help_library":
+      return searchHelpLibraryTool({ question: String(input.question ?? "") });
+
+    default:
+      return { ok: false, error: `Unsupported tool: ${name}` };
+  }
+}
+```
 
 ## Where the bootstrap lives in this repo
 
