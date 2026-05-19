@@ -2,73 +2,58 @@
 
 ## Starting point
 
-Start from `checkpoint/05-dataset`. You have:
+```bash
+git checkout checkpoint/05-dataset
+```
 
-- a seeded Langfuse dataset
-- a production-instrumented app
-- one stable app entrypoint: `runSupportConversation(...)`
+Your dataset is seeded in Langfuse. `scripts/run-dataset.ts` is already in the repo.
 
 ## Goal
 
-Run the same app logic on the dataset and attach at least one evaluator so different runs can be compared.
+Two passes:
 
-## Exact changes by file
+1. **Understand the run script** — same `runSupportConversation(...)` the web app calls, but driven by dataset items.
+2. **Run the dataset** and inspect the resulting run + scores in Langfuse.
 
-### `scripts/run-dataset.ts`
+<!-- TODO: insert the agent + tools diagram with dataset → agent → run summary flow. -->
 
-This file is the main work for the step.
+*[Diagram placeholder: dataset items → agent → run summary.]*
 
-1. Import:
-   - `LangfuseClient`
-   - the tracing helpers from `src/server/instrumentation.ts`
-   - `runSupportConversation(...)`
-2. Define the dataset input shape to match the JSON:
-   - `input.messages`
-3. Add a helper that converts dataset messages into runtime chat messages:
-   - add ids
-   - add timestamps
-4. Initialize tracing at the top of the script with `ensureTracingInitialized()`.
-5. Load the dataset from Langfuse with `langfuse.dataset.get(...)`.
-6. Use `dataset.runExperiment(...)`.
-7. In the `task` function:
-   - read `item.input.messages`
-   - convert them to runtime messages
-   - call `runSupportConversation(...)`
-   - return `response.answer`
-8. Add run metadata such as:
-   - `model`
-   - `promptVariant`
-9. Add at least one evaluator.
-10. In this repo, the simple evaluator is `keyword_overlap`, so implement:
-    - a helper that compares the answer to `expectedKeywords`
-    - one evaluator that returns the overlap score
-11. Flush Langfuse and shut tracing down before exiting.
+## Step 1 — Understand the run script
 
-The finished file should create a dataset run in Langfuse using the same app logic as the web UI.
+Open `scripts/run-dataset.ts`. Key points:
 
-## What you should not do in this step
+- Loads the hosted dataset from Langfuse by `DATASET_NAME`.
+- For each item, calls the same `runSupportConversation(...)` the web app uses.
+- Uses `dataset.runExperiment(...)` to roll all per-item traces into a single run row.
+- Attaches a `keyword_overlap` score per item from `expectedKeywords` vs the answer.
 
-- Do not create a second implementation path just for experiments.
-- Do not bypass `runSupportConversation(...)`.
+The traces produced are the same shape as production traces — same `dad-it-support-chat-turn` root, same OpenAI generation, same tool spans.
 
-The point is that experiments should use the same app logic you traced in production.
-
-## How to verify you are done
-
-Run:
+## Step 2 — Run the dataset
 
 ```bash
 npm run dataset:run
 ```
 
-Then verify in Langfuse:
+Watch progress per item in the console; finishes with a summary line.
 
-- a dataset run appears
-- every item has an output
-- the run metadata is visible
-- the `keyword_overlap` score appears
-- the item traces link back to the same app structure you saw in tracing
+## What to inspect in Langfuse
+
+- The new **Run** under your dataset → one row per item with `keyword_overlap` and a trace link.
+- Item-level traces — identical shape to production traces.
+- The dataset's chart view → per-run averages for future side-by-side comparisons.
+
+## How to verify you are done
+
+- One run row appears under the dataset.
+- Every item has a trace and a score.
+- Trace shape matches a normal production trace.
+
+## Wrap-up
+
+The `/langfuse` Claude Code skill knows recommended evaluator shapes (deterministic vs LLM-as-a-judge) and how to wire them into `runExperiment` — the walkthrough exists so you see what the skill is doing under the hood.
 
 ## End state
 
-This finished experiment workflow becomes the starting point for `07-prompt-iteration`.
+This is the starting point for `07-prompt-iteration`.

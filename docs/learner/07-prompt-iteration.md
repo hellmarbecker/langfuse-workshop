@@ -2,70 +2,73 @@
 
 ## Starting point
 
-Start from `checkpoint/06-experiments`. You can already run the current app and prompt on the dataset.
+```bash
+git checkout checkpoint/06-experiments
+```
+
+Your app is traced, attributed, monitored, has a hosted dataset, and at least one experiment run. Now you change the prompt and run it again.
 
 ## Goal
 
-Make one prompt change and compare the new run against the previous run.
+Three passes:
 
-## Exact work to do
+1. **Change one thing** — swap the prompt variant or edit in the Langfuse UI.
+2. **Rerun the dataset** against the new prompt.
+3. **Compare runs** side by side.
 
-### Option A: change the Langfuse-managed prompt
+<!-- TODO: insert the agent + tools diagram with two prompt versions feeding the same dataset run. -->
 
-Use this option if you want to demonstrate prompt management inside Langfuse.
+*[Diagram placeholder: two prompt versions feeding the same dataset run.]*
 
-1. Open the `dad-it-support-agent` prompt in Langfuse.
-2. Change one small thing only.
-3. Good examples:
-   - ask for more explicit reassurance
-   - ask for more exact button names
-   - ask for shorter steps
-4. Publish the updated prompt version.
-5. Run the dataset again with:
+## Step 1 — Change the prompt
+
+Two options:
+
+**Option A — Code-side (republish a different variant):**
+
+```bash
+WORKSHOP_PROMPT_VARIANT=gentler npm run prompt:publish
+```
+
+This publishes a new version of `dad-it-support-agent` under the same label. The resolver picks it up on the next request.
+
+**Option B — Langfuse-side (edit in the UI):**
+
+Prompts → `dad-it-support-agent` → edit body → save as new version → promote to `production` label.
+
+## Step 2 — Rerun the dataset
 
 ```bash
 npm run dataset:run
 ```
 
-### Option B: change the local prompt variant
+You now have two runs under the same dataset, each linked to a different prompt version.
 
-Use this option if you want the repo itself to show the prompt change.
+## Step 3 — Compare
 
-1. Open `src/server/local-prompt.ts`.
-2. Add or adjust a variant such as `gentler`.
-3. Change only a few prompt rules.
-4. In `.env`, switch:
+In Langfuse:
 
-```bash
-WORKSHOP_PROMPT_VARIANT=gentler
-```
+- Dataset → **Runs** tab → both rows visible.
+- `keyword_overlap` averages give the broad direction.
+- Dataset chart view → per-run averages side by side.
+- Open a handful of items and read both answers — qualitative diffs are where the real signal usually is.
 
-5. Run the dataset again.
+Things to look for:
 
-### Comparison work in Langfuse
-
-After rerunning, compare the old and new runs.
-
-Look at:
-
-- which individual answers improved
-- which answers got worse
-- whether `keyword_overlap` changed
-- whether the tone changed in a way you actually wanted
-
-## What to avoid
-
-- Do not change the app logic and the prompt at the same time.
-- Do not change the dataset and the prompt at the same time.
-
-You want one clear cause for the differences between the two runs.
+- Which items improved (intentional).
+- Which items regressed.
+- Whether the prompt change shifted scope (more refusals? more confident answers?).
 
 ## How to verify you are done
 
-- You have at least two runs on the same dataset.
-- You can explain exactly what changed in the prompt.
-- You can point to at least one improvement and one unchanged or worse result.
+- Two runs appear under the dataset, linked to different prompt versions.
+- You can name one item that improved and one that didn't.
+- You can articulate why a single score isn't enough — it's the comparison that matters.
+
+## Wrap-up
+
+The `/langfuse` Claude Code skill bumps prompt versions, links runs to versions, and produces a comparison chart automatically — the walkthrough exists so you see what the skill is doing under the hood.
 
 ## End state
 
-You now have the full loop: app, tracing, prompt management, monitoring, dataset, experiments, and iteration.
+This is the starting point for `08-wrap-up`.

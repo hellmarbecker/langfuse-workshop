@@ -2,108 +2,114 @@
 
 ## Starting point
 
-Start from `checkpoint/02-tracing`. The app is traced, but the prompt still lives only in code.
+```bash
+git checkout checkpoint/02-tracing
+```
+
+You have a working traced app. The Langfuse client package (`@langfuse/client`) and the helper files (`src/server/prompt-manager.ts`, `scripts/publish-prompt.ts`) are already in the repo — you wire them up in this step.
+
+Make sure `.env` has:
+
+```bash
+LANGFUSE_PROMPT_NAME=dad-it-support-agent
+LANGFUSE_PROMPT_LABEL=production
+WORKSHOP_PROMPT_VARIANT=baseline
+```
 
 ## Goal
 
-Replace the code-only prompt path with a Langfuse-managed prompt plus a safe local fallback.
+Three steps that match the three things prompt management does:
 
-## Exact changes by file
+1. **First prompt** — publish the local template to Langfuse so a versioned copy exists there.
+2. **Resolve from Langfuse at request time** — read the prompt from Langfuse with a local fallback.
+3. **Link generations to the prompt version** — so every trace points back at the prompt that produced it.
 
-### `src/server/local-prompt.ts`
+<!-- TODO: insert the agent + tools diagram with the prompt path highlighted -->
 
-Keep this file as the source of the fallback prompt.
+*[Diagram placeholder: agent + tools with the prompt arrow flowing from Langfuse.]*
 
-1. Keep the `baseline` prompt.
-2. Optionally add a second variant such as `gentler`.
-3. Keep the helper functions:
-   - `getLocalPromptTemplate(...)`
-   - `buildPromptVariables(...)`
-   - `compileLocalPrompt(...)`
-4. Make sure `buildPromptVariables(...)` is built from the one Dad context:
-   - label and relationship
-   - devices and device summary
-   - response style
-   - scope highlights
+## Step 1 — Publish the prompt
 
-The finished file should still be able to render a complete prompt without any Langfuse API call.
-
-### `src/server/prompt-manager.ts`
-
-Add the prompt loading layer here.
-
-1. Create a lazy `LangfuseClient`.
-2. Add a `ResolvedPrompt` type that includes:
-   - `promptText`
-   - `promptSource`
-   - prompt metadata
-3. Implement `resolveSupportPrompt(context)`.
-4. In `resolveSupportPrompt(...)`:
-   - read the current prompt variant from env
-   - compile the local fallback prompt
-   - if Langfuse is not configured, return the local prompt immediately
-   - otherwise fetch the prompt from Langfuse using:
-     - prompt name
-     - prompt label
-     - fallback prompt
-5. Return whether the final prompt came from:
-   - `local`
-   - `langfuse`
-6. Implement `publishSupportPrompt(...)` so the workshop can push the starter prompt into Langfuse.
-
-The finished file should be the one place that decides whether the app uses the local prompt or the Langfuse-managed prompt.
-
-### `src/server/support-agent.ts`
-
-Replace the hardcoded local prompt path with the prompt manager.
-
-1. Import `resolveSupportPrompt(...)`.
-2. At the top of the chat-turn function:
-   - load the support context
-   - call `resolveSupportPrompt(context)`
-3. Replace any old direct local-prompt compilation with `prompt.promptText`.
-4. Use `prompt.promptSource` in the root observation input and output.
-5. When wrapping OpenAI with `observeOpenAI(...)`, pass the Langfuse prompt object if one exists.
-
-The finished file should keep the trace shape stable while the prompt source changes underneath it.
-
-### `scripts/publish-prompt.ts`
-
-Use this script to publish the starter prompt.
-
-1. Read `WORKSHOP_PROMPT_VARIANT` from env.
-2. Call `publishSupportPrompt(...)`.
-3. Print a human-readable success message.
-
-### `.env`
-
-Make sure the following values exist:
-
-- `LANGFUSE_PROMPT_NAME`
-- `LANGFUSE_PROMPT_LABEL`
-- `WORKSHOP_PROMPT_VARIANT`
-
-## What the finished system should do
-
-- Work without Langfuse prompt management
-- Prefer the Langfuse prompt when it exists
-- Keep a local fallback
-- Link generations back to the prompt version when Langfuse is being used
-
-## How to verify you are done
-
-1. Run the app with Langfuse keys but without publishing the prompt yet.
-2. Confirm it still works and reports `promptSource: "local"`.
-3. Run:
+Without this, there's nothing in Langfuse for the resolver to fetch. `scripts/publish-prompt.ts` already does the work — run it:
 
 ```bash
 npm run prompt:publish
 ```
 
-4. Ask a question again.
-5. Confirm the response now reports `promptSource: "langfuse"`.
-6. Open the trace and confirm the generation is linked to the prompt.
+Open Langfuse → **Prompts** → confirm `dad-it-support-agent` exists with a version labelled `production`. The body should match `local-prompt.ts`'s baseline variant.
+
+## Step 2 — Resolve the prompt at request time
+
+`src/server/prompt-manager.ts` already implements `resolveSupportPrompt(context)`. Read it once — it:
+
+- returns the local prompt if Langfuse keys are missing
+- fetches from Langfuse otherwise, with the local template as fallback if the network call fails
+- returns `promptSource` (`langfuse` vs `local`) so the UI/response can show which path was taken
+
+In `src/server/support-agent.ts`, swap the inline prompt compilation for a call to the resolver.
+
+**Add the import:**
+
+```ts
+import { resolveSupportPrompt } from "./prompt-manager";
+```
+
+**Replace the prompt compilation lines** at the top of `runSupportConversationInner` with:
+
+```ts
+const context = getSupportContext();
+const prompt = await resolveSupportPrompt(context);
+```
+
+**Use `prompt.promptText`** in the system message:
+
+```ts
+const transcript: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+  { role: "system", content: prompt.promptText },
+  ...toOpenAIMessages(request.messages)
+];
+```
+
+**Update the response** to flow `promptSource` through:
+
+```ts
+return {
+  answer: finalAnswer,
+  promptSource: prompt.promptSource,
+  // ...
+};
+```
+
+You can delete the now-unused imports from `./local-prompt` (`buildPromptVariables`, `compileLocalPrompt`, `getLocalPromptTemplate`) from `support-agent.ts` — they only live inside the resolver now.
+
+## Step 3 — Link the generation to the prompt version
+
+Move the `observeOpenAI` wrap **inside** `runSupportConversationInner` so it can carry the active prompt:
+
+```ts
+const openai = observeOpenAI(getRawOpenAIClient(), {
+  ...(prompt.langfusePrompt ? { langfusePrompt: prompt.langfusePrompt as never } : {})
+});
+```
+
+`getRawOpenAIClient()` is your existing factory that returns `new OpenAI({ apiKey })` — rename `getOpenAIClient` from step 02 to `getRawOpenAIClient` if you haven't already. Drop the module-level `const openai = observeOpenAI(...)` from step 02 since the wrap now happens per request.
+
+## Verify
+
+```bash
+npm run dev
+```
+
+Ask one question, then in Langfuse:
+
+- Open the trace, click the OpenAI generation. It should show a **Prompt** badge linking to `dad-it-support-agent` at the published version.
+- The root observation's output `promptSource` reads `langfuse`.
+- In the Prompts view for `dad-it-support-agent`, scroll to "Used in" and your trace appears.
+
+## Wrap-up
+
+Prompt management is what closes the trace ↔ prompt loop. The `/langfuse` Claude Code skill applies the recommended pattern (caching, fallbacks, linking) automatically — this walkthrough exists so you can see what the skill is doing under the hood.
 
 ## End state
 
-This finished state becomes the starting point for `04-monitoring`.
+This is the starting point for `04-monitoring`.

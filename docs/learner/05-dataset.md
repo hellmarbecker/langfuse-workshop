@@ -2,87 +2,79 @@
 
 ## Starting point
 
-Start from `checkpoint/04-monitoring`. You already understand:
+```bash
+git checkout checkpoint/04-monitoring
+```
 
-- the app scope
-- the interesting failure modes
-- the trace shape
+You have a traced, attributed, monitored app. `data/seed-dataset.json` and `scripts/seed-dataset.ts` are already in the repo at this checkpoint.
+
+Make sure `.env` has:
+
+```bash
+DATASET_NAME=dad-it-support-workshop
+```
 
 ## Goal
 
-Create a starter dataset that reflects the intended scope of the Dad IT Support Agent and uses the same message-array input shape as the app.
+Two passes:
 
-## Exact changes by file
+1. **Understand the item shape** so dataset inputs match the agent's real input.
+2. **Seed the hosted dataset** from the local JSON.
 
-### `data/seed-dataset.json`
+<!-- TODO: insert the agent + tools diagram with a dataset node feeding the agent input. -->
 
-This is the main artifact for the step.
+*[Diagram placeholder: dataset feeding the agent.]*
 
-1. Add around 20 representative examples.
-2. Keep the input shape aligned with the app:
+## Step 1 — Read the item shape
+
+Open `data/seed-dataset.json`. Each item looks like:
 
 ```json
 {
+  "id": "dad-001",
   "input": {
-    "messages": [{ "role": "user", "content": "..." }]
-  }
+    "messages": [{ "role": "user", "content": "How do I turn Bluetooth on on my iPhone?" }]
+  },
+  "expectedOutput": {
+    "idealAnswer": "Open Settings, tap Bluetooth, and turn the Bluetooth switch on.",
+    "expectedKeywords": ["Settings", "Bluetooth", "switch", "on"]
+  },
+  "metadata": { "category": "iphone-bluetooth", "difficulty": "easy" }
 }
 ```
 
-3. For every item, also add:
-   - `id`
-   - `expectedOutput.idealAnswer`
-   - `expectedOutput.expectedKeywords`
-   - `metadata`
-4. Make sure the dataset covers:
-   - iPhone Bluetooth
-   - iPhone Wi-Fi
-   - photos and WhatsApp
-   - Maps basics
-   - Windows Wi-Fi
-   - printing
-   - finding downloads
-   - limits such as passwords or live location
-   - out-of-scope requests
+Note: `input.messages` matches `/api/chat`'s shape exactly so the experiment script in step 06 can call the same `runSupportConversation(...)` without rewriting inputs.
 
-The finished file should feel like a real first evaluation set, not a random list of prompts.
-
-### `scripts/seed-dataset.ts`
-
-Use this script to create the dataset in Langfuse.
-
-1. Initialize `LangfuseClient`.
-2. Create the dataset if it does not already exist.
-3. Loop through the JSON file and create each dataset item.
-4. Pass through:
-   - `id`
-   - `datasetName`
-   - `input`
-   - `expectedOutput`
-   - `metadata`
-5. Flush the Langfuse client before exiting.
-
-The finished file should be idempotent enough for workshop use. If the dataset already exists, the script should not crash for a trivial reason.
-
-### `.env`
-
-Make sure `DATASET_NAME` points to the dataset name you want to seed.
-
-## How to verify you are done
-
-Run:
+## Step 2 — Seed the dataset
 
 ```bash
 npm run dataset:seed
 ```
 
-Then verify:
+Open Langfuse → **Datasets** → `dad-it-support-workshop`. Confirm the items are there with input/expected output/metadata.
 
-- the dataset appears in Langfuse
-- the item count matches your JSON file
-- each item uses `input.messages`
-- each item has an expected output
+## What the starter dataset covers
+
+- iPhone Bluetooth basics and edge cases
+- iPhone Wi-Fi reconnect + "I can't see the network"
+- Photo capture + WhatsApp share
+- Apple Maps directions + the live-location limit
+- Messages basics
+- Out-of-scope (file my taxes, book my train)
+- Limitation cases (passwords, live location)
+
+If you add items later, prefer ones that match a real signal you saw in monitoring.
+
+## How to verify you are done
+
+- The dataset shows up in Langfuse with all items.
+- Item inputs look like the `messages` array a real chat turn would have.
+- You can articulate the failure modes the dataset covers.
+
+## Wrap-up
+
+The `/langfuse` Claude Code skill handles dataset creation, upsert, and stratification across categories — the walkthrough exists so you see what the skill is doing under the hood.
 
 ## End state
 
-This finished dataset becomes the starting point for `06-experiments`.
+This is the starting point for `06-experiments`.

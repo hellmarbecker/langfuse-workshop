@@ -2,65 +2,46 @@
 
 ## Starting point
 
-You have walked through the full workshop path.
+```bash
+git checkout checkpoint/07-prompt-iteration
+```
 
-## Goal
+You have walked through every loop step.
 
-Be able to explain the full engineering loop and how each repository step supported it.
+## What you should be able to do now
 
-## What you should now be able to explain
+- Trace an LLM app end-to-end and read the result as a debugging surface.
+- Connect prompts to traces so a prompt change has a measurable next-trace effect.
+- Detect interesting production behavior (out-of-scope, disagreement) automatically.
+- Turn product scope into a starter dataset of realistic examples.
+- Run experiments on the same agent code with no parallel implementation.
+- Compare runs after a prompt change and decide what's better — by score and by reading individual outputs.
 
-### Product shape
+<!-- TODO: insert the full agent + tools + Langfuse diagram summarising the loop. -->
 
-You should be able to explain why the sample app is intentionally small:
+*[Diagram placeholder: the full agent + tools + Langfuse picture, summarising what we built.]*
 
-- one Dad support context
-- one chat interface
-- two local tools
-- one OpenAI app loop
+## Bigger picture
 
-### Tracing
+Langfuse in this workshop is a *shared surface*, not just observability:
 
-You should be able to explain:
+- understanding behavior — every interaction is inspectable
+- collecting representative examples — production seeds datasets
+- comparing changes — every prompt or code change has a baseline
+- improving systems continuously — the loop closes back on itself
 
-- where tracing is initialized
-- where the root observation is created
-- where the tools are traced
-- why the root input contains `messages`
-- why the root output contains `answer`
+## Good closing questions
 
-### Prompt management
+- What did tracing reveal that was invisible before?
+- Which production events would you monitor first in your own app?
+- What would you add to the starter dataset next?
+- What change would you test after the first prompt iteration?
+- Where in your real app would the `/langfuse` skill have saved you the most hand-rolling?
 
-You should be able to explain:
+## Next steps
 
-- where the fallback prompt lives
-- where the Langfuse prompt is fetched
-- how the app decides between `local` and `langfuse`
-
-### Monitoring
-
-You should be able to explain:
-
-- which observation to monitor
-- which JSON paths matter
-- why out-of-scope and disagreement are good first monitors
-
-### Dataset and experiments
-
-You should be able to explain:
-
-- why the dataset uses `input.messages`
-- why the experiment reuses `runSupportConversation(...)`
-- how the evaluator score is attached
-
-### Iteration
-
-You should be able to explain:
-
-- what changed between two runs
-- how you compared them
-- what you would test next
-
-## End state
-
-You should now be able to take the same structure into another LLM app and rebuild the same loop there with much less guesswork.
+1. Install the **Langfuse Claude Code skill** (`/langfuse`) — it packages the recommended patterns from this workshop.
+2. Pick the smallest LLM-using surface you have and wire `observe(...)` + `observeOpenAI(...)` first.
+3. Add `propagateAttributes(...)` only once you have at least two users or two sessions worth of data.
+4. Build your first dataset *from real traces*, not from imagination.
+5. Run one experiment, change one thing, rerun. Repeat.
