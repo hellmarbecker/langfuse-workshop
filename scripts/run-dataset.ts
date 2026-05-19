@@ -1,11 +1,20 @@
 import "dotenv/config";
+import { randomUUID } from "node:crypto";
 import { LangfuseClient } from "@langfuse/client";
-import { runSupportConversation } from "../src/server/anthropic-agent";
+import type { ChatMessage } from "../src/shared/types";
 import { env } from "../src/server/env";
+import {
+  ensureTracingInitialized,
+  flushTracing,
+  shutdownTracing
+} from "../src/server/instrumentation";
+import { runSupportConversation } from "../src/server/support-agent";
 
 type DatasetInput = {
-  profileId: string;
-  message: string;
+  messages: Array<{
+    role: ChatMessage["role"];
+    content: string;
+  }>;
 };
 
 type DatasetExpectation = {
@@ -26,10 +35,21 @@ function keywordOverlap(answer: string, expectedKeywords: string[]) {
   return matches.length / expectedKeywords.length;
 }
 
+function toRuntimeMessages(input: DatasetInput) {
+  return input.messages.map((message, index) => ({
+    id: `dataset-message-${index + 1}`,
+    role: message.role,
+    content: message.content,
+    timestamp: new Date().toISOString()
+  }));
+}
+
 async function main() {
   if (!env.langfusePublicKey || !env.langfuseSecretKey) {
     throw new Error("Langfuse credentials are required to run dataset experiments.");
   }
+
+  ensureTracingInitialized();
 
   const langfuse = new LangfuseClient({
     publicKey: env.langfusePublicKey,
@@ -38,48 +58,47 @@ async function main() {
   });
 
   const dataset = await langfuse.dataset.get(env.datasetName);
-  const runName = `parent-support-${env.workshopPromptVariant}-${new Date().toISOString()}`;
+  const runName = `dad-it-support-${env.workshopPromptVariant}-${new Date().toISOString()}`;
 
-  for (const item of dataset.items) {
-    const input = item.input as DatasetInput;
-    const expected = item.expectedOutput as DatasetExpectation;
+  const result = await dataset.runExperiment({
+    name: "Dad IT Support Agent experiment",
+    runName,
+    description: "Workshop dataset run for the Dad IT Support Agent",
+    metadata: {
+      model: env.openaiModel,
+      promptVariant: env.workshopPromptVariant
+    },
+    maxConcurrency: 1,
+    task: async (item) => {
+      const input = item.input as DatasetInput;
+      const response = await runSupportConversation({
+        sessionId: `dataset-${randomUUID()}`,
+        userId: "dataset-runner",
+        messages: toRuntimeMessages(input)
+      });
 
-    const { span, result } = await runSupportConversation({
-      profileId: input.profileId,
-      sessionId: `dataset-${item.id}`,
-      userId: "dataset-runner",
-      messages: [
-        {
-          id: `dataset-${item.id}`,
-          role: "user",
-          content: input.message,
-          timestamp: new Date().toISOString()
-        }
-      ]
-    });
+      return response.answer;
+    },
+    evaluators: [
+      async ({ output, expectedOutput }) => {
+        const expected = expectedOutput as DatasetExpectation;
+        const overlap = keywordOverlap(output as string, expected.expectedKeywords);
 
-    await item.link(span as never, runName, {
-      description: "Workshop dataset run",
-      metadata: {
-        model: env.anthropicModel,
-        promptVariant: env.workshopPromptVariant
+        return {
+          name: "keyword_overlap",
+          value: overlap,
+          comment: `Matched ${Math.round(
+            overlap * expected.expectedKeywords.length
+          )} of ${expected.expectedKeywords.length} expected keywords.`
+        };
       }
-    });
+    ]
+  });
 
-    const overlap = keywordOverlap(result.answer, expected.expectedKeywords);
-
-    langfuse.score.trace(span as never, {
-      name: "keyword_overlap",
-      value: overlap,
-      comment: `Matched ${Math.round(
-        overlap * expected.expectedKeywords.length
-      )} of ${expected.expectedKeywords.length} expected keywords.`
-    });
-  }
-
+  console.log(await result.format());
   await langfuse.flush();
-  console.log(`Finished dataset run "${runName}".`);
+  await flushTracing();
+  await shutdownTracing();
 }
 
 void main();
-

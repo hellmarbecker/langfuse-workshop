@@ -1,291 +1,222 @@
 [
   {
-    "id": "rita-bluetooth-on",
+    "id": "dad-001",
     "input": {
-      "profileId": "rita-iphone",
-      "message": "How do I turn Bluetooth on for Mum's phone?"
+      "messages": [{ "role": "user", "content": "How do I turn Bluetooth on on my iPhone?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Tell Rita to open Settings, tap Bluetooth, and switch it on so it turns green.",
-      "expectedKeywords": ["Settings", "Bluetooth", "green"]
+      "idealAnswer": "Open Settings, tap Bluetooth, and turn the Bluetooth switch on.",
+      "expectedKeywords": ["Settings", "Bluetooth", "switch", "on"]
     },
-    "metadata": {
-      "category": "bluetooth",
-      "scope": "in_scope",
-      "device": "ios"
-    }
+    "metadata": { "category": "iphone-bluetooth", "difficulty": "easy" }
   },
   {
-    "id": "rita-wifi-home",
+    "id": "dad-002",
     "input": {
-      "profileId": "rita-iphone",
-      "message": "She got kicked off the home Wi-Fi. What should she tap?"
+      "messages": [{ "role": "user", "content": "How do I take a photo and send it on WhatsApp?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Explain the Wi-Fi menu in Settings, choosing the home network, and entering the password.",
-      "expectedKeywords": ["Wi-Fi", "Settings", "password"]
+      "idealAnswer": "Take the photo in Camera, open WhatsApp, choose the chat, attach the photo, and send it.",
+      "expectedKeywords": ["Camera", "WhatsApp", "chat", "photo", "Send"]
     },
-    "metadata": {
-      "category": "wifi",
-      "scope": "in_scope",
-      "device": "ios"
-    }
+    "metadata": { "category": "iphone-photo", "difficulty": "easy" }
   },
   {
-    "id": "rita-photo-whatsapp",
+    "id": "dad-003",
     "input": {
-      "profileId": "rita-iphone",
-      "message": "How can she take a picture and send it to me on WhatsApp?"
+      "messages": [{ "role": "user", "content": "How do I reconnect the iPhone to Wi-Fi?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Mention Camera first, then WhatsApp, then selecting or taking the photo and sending it.",
-      "expectedKeywords": ["Camera", "WhatsApp", "Send"]
+      "idealAnswer": "Open Settings, tap Wi-Fi, choose the network, and join it with the password.",
+      "expectedKeywords": ["Settings", "Wi-Fi", "network", "Join"]
     },
-    "metadata": {
-      "category": "photos",
-      "scope": "in_scope",
-      "device": "ios"
-    }
+    "metadata": { "category": "iphone-wifi", "difficulty": "easy" }
   },
   {
-    "id": "rita-bus-stop",
+    "id": "dad-004",
     "input": {
-      "profileId": "rita-iphone",
-      "message": "Can you show her how to get directions to the next bus stop?"
+      "messages": [{ "role": "user", "content": "How do I get directions to the next bus stop?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Explain how to use Maps and also mention the assistant cannot see her real-time location in the demo.",
-      "expectedKeywords": ["Maps", "Directions", "cannot"]
+      "idealAnswer": "Open Maps, search for the bus stop or nearby street, tap Directions, and choose walking or transit.",
+      "expectedKeywords": ["Maps", "search", "Directions", "walking", "transit"]
     },
-    "metadata": {
-      "category": "maps",
-      "scope": "in_scope_with_limit",
-      "device": "ios"
-    }
+    "metadata": { "category": "maps", "difficulty": "medium" }
   },
   {
-    "id": "rita-tax-out-of-scope",
+    "id": "dad-005",
     "input": {
-      "profileId": "rita-iphone",
-      "message": "Can you file her taxes for her as well?"
+      "messages": [{ "role": "user", "content": "How do I print a PDF from the laptop?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Politely decline because taxes are out of scope and redirect to device help.",
-      "expectedKeywords": ["out of scope", "device", "help"]
+      "idealAnswer": "Open the PDF, press Control and P, choose the HP printer, and click Print.",
+      "expectedKeywords": ["Control", "P", "HP", "Print"]
     },
-    "metadata": {
-      "category": "out_of_scope",
-      "scope": "out_of_scope",
-      "device": "ios"
-    }
+    "metadata": { "category": "windows-print", "difficulty": "easy" }
   },
   {
-    "id": "klaus-print-pdf",
+    "id": "dad-006",
     "input": {
-      "profileId": "klaus-windows",
-      "message": "Dad needs to print a PDF on his HP printer. What are the steps?"
+      "messages": [{ "role": "user", "content": "How do I reconnect the laptop to the home Wi-Fi?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Tell him to open the PDF, press Control and P or click Print, choose the HP printer, and click Print.",
-      "expectedKeywords": ["Control", "P", "HP printer"]
+      "idealAnswer": "Click the network icon, turn Wi-Fi on if needed, choose the network, and connect.",
+      "expectedKeywords": ["network icon", "Wi-Fi", "Connect", "password"]
     },
-    "metadata": {
-      "category": "printing",
-      "scope": "in_scope",
-      "device": "windows"
-    }
+    "metadata": { "category": "windows-wifi", "difficulty": "easy" }
   },
   {
-    "id": "klaus-wifi-reconnect",
+    "id": "dad-007",
     "input": {
-      "profileId": "klaus-windows",
-      "message": "The laptop lost internet again. How does he reconnect to Wi-Fi?"
+      "messages": [{ "role": "user", "content": "How do I pair Bluetooth headphones on the Windows laptop?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Explain the taskbar network icon, turning Wi-Fi on, selecting the network, and connecting.",
-      "expectedKeywords": ["taskbar", "Wi-Fi", "Connect"]
+      "idealAnswer": "Open Settings, go to Bluetooth and devices, add a device, and pick the headphones.",
+      "expectedKeywords": ["Settings", "Bluetooth and devices", "Add device", "headphones"]
     },
-    "metadata": {
-      "category": "wifi",
-      "scope": "in_scope",
-      "device": "windows"
-    }
+    "metadata": { "category": "windows-bluetooth", "difficulty": "medium" }
   },
   {
-    "id": "klaus-bluetooth-headphones",
+    "id": "dad-008",
     "input": {
-      "profileId": "klaus-windows",
-      "message": "How does he pair his Bluetooth headphones?"
+      "messages": [{ "role": "user", "content": "Where do I find the file I just downloaded?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Use Bluetooth and devices settings, turn Bluetooth on, add device, and choose the headphones.",
-      "expectedKeywords": ["Bluetooth and devices", "Add device", "headphones"]
+      "idealAnswer": "Open File Explorer, click Downloads, and look for the newest file.",
+      "expectedKeywords": ["File Explorer", "Downloads", "newest"]
     },
-    "metadata": {
-      "category": "bluetooth",
-      "scope": "in_scope",
-      "device": "windows"
-    }
+    "metadata": { "category": "windows-downloads", "difficulty": "easy" }
   },
   {
-    "id": "klaus-downloads-folder",
+    "id": "dad-009",
     "input": {
-      "profileId": "klaus-windows",
-      "message": "Where does he find the file he just downloaded?"
+      "messages": [{ "role": "user", "content": "My Bluetooth is already on but the earbuds are not showing up." }]
     },
     "expectedOutput": {
-      "idealAnswer": "Guide him to File Explorer and the Downloads folder.",
-      "expectedKeywords": ["File Explorer", "Downloads"]
+      "idealAnswer": "Explain that the earbuds likely still need pairing mode, then tell Dad where to check Bluetooth.",
+      "expectedKeywords": ["pairing mode", "Bluetooth", "appear"]
     },
-    "metadata": {
-      "category": "files",
-      "scope": "in_scope",
-      "device": "windows"
-    }
+    "metadata": { "category": "iphone-bluetooth", "difficulty": "medium" }
   },
   {
-    "id": "klaus-medical-out-of-scope",
+    "id": "dad-010",
     "input": {
-      "profileId": "klaus-windows",
-      "message": "Can you tell him which medication to take for his back pain?"
+      "messages": [{ "role": "user", "content": "I do not see the home Wi-Fi name on my phone." }]
     },
     "expectedOutput": {
-      "idealAnswer": "Refuse medical advice and redirect to device support.",
-      "expectedKeywords": ["out of scope", "medical", "device support"]
+      "idealAnswer": "Tell Dad to stay in Wi-Fi settings, move closer to the router, and wait for the network list to refresh.",
+      "expectedKeywords": ["Wi-Fi", "router", "network", "refresh"]
     },
-    "metadata": {
-      "category": "out_of_scope",
-      "scope": "out_of_scope",
-      "device": "windows"
-    }
+    "metadata": { "category": "iphone-wifi", "difficulty": "medium" }
   },
   {
-    "id": "maya-wifi-on",
+    "id": "dad-011",
     "input": {
-      "profileId": "maya-android",
-      "message": "How does she turn Wi-Fi back on from the top of the screen?"
+      "messages": [{ "role": "user", "content": "How do I choose the HP printer before I print?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Mention swiping down, tapping Wi-Fi, and holding it for full settings if needed.",
-      "expectedKeywords": ["Swipe down", "Wi-Fi", "settings"]
+      "idealAnswer": "Open the print dialog and choose the HP printer from the printer list before clicking Print.",
+      "expectedKeywords": ["HP", "printer list", "Print"]
     },
-    "metadata": {
-      "category": "wifi",
-      "scope": "in_scope",
-      "device": "android"
-    }
+    "metadata": { "category": "windows-print", "difficulty": "easy" }
   },
   {
-    "id": "maya-car-bluetooth",
+    "id": "dad-012",
     "input": {
-      "profileId": "maya-android",
-      "message": "How can she pair the phone with the car?"
+      "messages": [{ "role": "user", "content": "How do I open the photo I just took?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Open Bluetooth, turn it on, put the car in pairing mode, and select the car name.",
-      "expectedKeywords": ["Bluetooth", "pairing mode", "car"]
+      "idealAnswer": "Tell Dad to tap the photo preview thumbnail after taking the picture.",
+      "expectedKeywords": ["photo", "preview", "thumbnail"]
     },
-    "metadata": {
-      "category": "bluetooth",
-      "scope": "in_scope",
-      "device": "android"
-    }
+    "metadata": { "category": "iphone-photo", "difficulty": "easy" }
   },
   {
-    "id": "maya-camera-photo",
+    "id": "dad-013",
     "input": {
-      "profileId": "maya-android",
-      "message": "She wants to take a photo. What should she press?"
+      "messages": [{ "role": "user", "content": "How do I turn Wi-Fi on from the taskbar?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Open Camera and press the shutter button.",
-      "expectedKeywords": ["Camera", "shutter"]
+      "idealAnswer": "Tell Dad to click the network icon in the bottom-right corner and turn Wi-Fi on there.",
+      "expectedKeywords": ["network icon", "bottom-right", "Wi-Fi"]
     },
-    "metadata": {
-      "category": "photos",
-      "scope": "in_scope",
-      "device": "android"
-    }
+    "metadata": { "category": "windows-wifi", "difficulty": "easy" }
   },
   {
-    "id": "maya-bus-stop-directions",
+    "id": "dad-014",
     "input": {
-      "profileId": "maya-android",
-      "message": "Show her how to find the next bus stop in Google Maps."
+      "messages": [{ "role": "user", "content": "How do I add a Bluetooth device on the laptop?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Explain Google Maps search and directions while being clear about live-location limits.",
-      "expectedKeywords": ["Google Maps", "Directions", "cannot"]
+      "idealAnswer": "Open Settings, go to Bluetooth and devices, click Add device, then choose Bluetooth.",
+      "expectedKeywords": ["Settings", "Bluetooth and devices", "Add device", "Bluetooth"]
     },
-    "metadata": {
-      "category": "maps",
-      "scope": "in_scope_with_limit",
-      "device": "android"
-    }
+    "metadata": { "category": "windows-bluetooth", "difficulty": "easy" }
   },
   {
-    "id": "maya-travel-booking-out-of-scope",
+    "id": "dad-015",
     "input": {
-      "profileId": "maya-android",
-      "message": "Can you also book the whole train journey for her?"
+      "messages": [{ "role": "user", "content": "Can you see my live location and tell me which bus stop is closest?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Decline the booking task as out of scope and offer to explain how to use the phone instead.",
-      "expectedKeywords": ["out of scope", "book", "phone"]
+      "idealAnswer": "Explain that the assistant cannot see live location, then offer step-by-step help using Maps.",
+      "expectedKeywords": ["cannot", "live location", "Maps"]
     },
-    "metadata": {
-      "category": "out_of_scope",
-      "scope": "out_of_scope",
-      "device": "android"
-    }
+    "metadata": { "category": "maps", "difficulty": "medium" }
   },
   {
-    "id": "rita-printer-mismatch",
+    "id": "dad-016",
     "input": {
-      "profileId": "rita-iphone",
-      "message": "She says the printer is not showing up. What should she check first?"
+      "messages": [{ "role": "user", "content": "Can you file my taxes for me?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Be honest that the current library focuses on known device basics, mention scope limits, and offer nearby troubleshooting such as checking Wi-Fi and the printer app if relevant.",
-      "expectedKeywords": ["printer", "Wi-Fi", "check"]
+      "idealAnswer": "Politely refuse because it is out of scope and redirect to device-support help.",
+      "expectedKeywords": ["out of scope", "help", "device"]
     },
-    "metadata": {
-      "category": "edge_case",
-      "scope": "adjacent_scope",
-      "device": "ios"
-    }
+    "metadata": { "category": "out-of-scope", "difficulty": "easy" }
   },
   {
-    "id": "klaus-password-reset-adjacent",
+    "id": "dad-017",
     "input": {
-      "profileId": "klaus-windows",
-      "message": "He forgot his email password. What do I tell him?"
+      "messages": [{ "role": "user", "content": "What is my Wi-Fi password?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Explain the assistant cannot reset the password directly but can guide him to the account recovery page or sign-in flow.",
-      "expectedKeywords": ["cannot", "password", "recovery"]
+      "idealAnswer": "Explain that the assistant cannot see passwords and then offer reconnection steps.",
+      "expectedKeywords": ["cannot", "password", "Wi-Fi"]
     },
-    "metadata": {
-      "category": "account_help",
-      "scope": "in_scope_with_limit",
-      "device": "windows"
-    }
+    "metadata": { "category": "limits", "difficulty": "easy" }
   },
   {
-    "id": "maya-unclear-follow-up",
+    "id": "dad-018",
     "input": {
-      "profileId": "maya-android",
-      "message": "The button is gone now. What do I do?"
+      "messages": [{ "role": "user", "content": "How do I search for the bus stop in Maps?" }]
     },
     "expectedOutput": {
-      "idealAnswer": "Ask a clarifying question or explain which screen she should be on before giving concrete taps.",
-      "expectedKeywords": ["which screen", "clarify"]
+      "idealAnswer": "Open Maps, use the search bar, type the bus stop or street name, and then ask for directions.",
+      "expectedKeywords": ["Maps", "search", "bus stop", "Directions"]
     },
-    "metadata": {
-      "category": "clarification",
-      "scope": "in_scope",
-      "device": "android"
-    }
+    "metadata": { "category": "maps", "difficulty": "easy" }
+  },
+  {
+    "id": "dad-019",
+    "input": {
+      "messages": [{ "role": "user", "content": "How do I send the photo after I pick it in WhatsApp?" }]
+    },
+    "expectedOutput": {
+      "idealAnswer": "After choosing the photo, tap Send in WhatsApp.",
+      "expectedKeywords": ["photo", "WhatsApp", "Send"]
+    },
+    "metadata": { "category": "iphone-photo", "difficulty": "easy" }
+  },
+  {
+    "id": "dad-020",
+    "input": {
+      "messages": [{ "role": "user", "content": "Book my train ticket to Munich for tomorrow." }]
+    },
+    "expectedOutput": {
+      "idealAnswer": "Say that booking travel is outside the support scope and redirect to device help the assistant can provide.",
+      "expectedKeywords": ["outside", "scope", "device help"]
+    },
+    "metadata": { "category": "out-of-scope", "difficulty": "easy" }
   }
 ]
-

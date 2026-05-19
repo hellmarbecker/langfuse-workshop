@@ -1,56 +1,41 @@
 # 03 Prompt Management
 
-This checkpoint replaces a purely local system prompt with a Langfuse-managed prompt, while preserving a fallback path.
+## How to think about this step
+
+Prompt management is not a separate product from tracing. It becomes useful because traces tell us which prompt version produced which behavior.
 
 ## Goal
 
-Show that prompt management is useful because:
+Move from a code-only prompt to a Langfuse-managed prompt with a safe local fallback.
 
-- prompts become collaborative artifacts
-- versions can be compared later
-- traces can be tied back to a specific prompt version
+## What changes in this step
 
-## Current implementation approach
+- The local prompt still exists in code.
+- The server tries to fetch the prompt from Langfuse first.
+- If the prompt is missing, the app falls back to the local prompt.
+- OpenAI generations can be linked back to the Langfuse prompt version.
 
-The app uses:
+## Files to point at
 
-- local prompt templates in `src/server/local-prompt.ts`
-- a Langfuse-aware loader in `src/server/prompt-manager.ts`
+- `src/server/local-prompt.ts`
+- `src/server/prompt-manager.ts`
+- `scripts/publish-prompt.ts`
 
-If a Langfuse prompt is unavailable, the app compiles the local fallback prompt instead.
-
-## Publish the baseline prompt
-
-Set:
+## Useful environment variables
 
 ```bash
-LANGFUSE_PROMPT_NAME=parent-support-agent
+LANGFUSE_PROMPT_NAME=dad-it-support-agent
 LANGFUSE_PROMPT_LABEL=production
 WORKSHOP_PROMPT_VARIANT=baseline
 ```
 
-Then run:
+## Demo suggestion
 
-```bash
-npm run prompt:publish
-```
-
-## Runtime behavior
-
-At request time the app:
-
-1. fetches the named prompt from Langfuse
-2. compiles it with profile variables
-3. links it to the generation when available
-4. falls back to the local prompt if needed
-
-## What to show in Langfuse
-
-- the generation is linked to a prompt version
-- prompt metrics can now be analyzed by version
-- the app still behaves consistently if prompt management is skipped in a shorter workshop
+1. Publish the prompt from code.
+2. Run the app again.
+3. Ask one question.
+4. Open the trace and show that the prompt source is now `langfuse`.
 
 ## Teaching point
 
-Prompt management should not make the system more fragile. In this repo it is deliberately additive, not a hard dependency.
-
+Prompt management is valuable because it gives us versioned prompt changes that stay connected to traces, monitors, and experiments.

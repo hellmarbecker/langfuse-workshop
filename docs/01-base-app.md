@@ -1,47 +1,44 @@
 # 01 Base App
 
-This checkpoint is the raw sample application: a small but visually memorable web chat that helps a family member support known parent devices.
+## How to think about this step
 
-## Sample app concept
+This step is about the product surface, not observability yet. The app should already be small, concrete, and believable before we instrument anything.
 
-- Known profiles:
-  - Rita on iPhone
-  - Klaus on Windows
-  - Maya on Android
-- Known tasks:
-  - Bluetooth
-  - Wi-Fi
-  - Photos
-  - Printing
-  - Basic maps help
+## Goal
 
-## Why this example works well
+Show a working Dad IT Support Agent that:
 
-- It is practical and relatable.
-- It naturally benefits from profile context.
-- It has clear in-scope and out-of-scope boundaries.
-- It invites tool usage without needing external APIs.
+- uses the official OpenAI SDK
+- has one fixed Dad support context
+- answers practical device questions
+- uses local tools for context lookup and guide lookup
+- still has no Langfuse tracing
 
-## Code shape
+## What is in the app
 
-- `src/client`: the web UI
-- `src/server/anthropic-agent.ts`: the server-side agent loop
-- `src/server/tools.ts`: local tools for profile lookup and help-library search
-- `src/server/support-data.ts`: profiles and step-by-step help content
+- One fixed Dad context, not multiple switchable profiles
+- A minimal web chat UI
+- One OpenAI tool-calling loop
+- Two local tools:
+  - `get_support_context`
+  - `search_help_library`
 
-## Live demo flow
+## Files to point at
 
-1. Choose a profile.
-2. Ask a practical device question.
-3. Show that the agent answers with the right device context.
-4. Show a clearly out-of-scope request and note that this matters later for monitoring.
+- `src/client/App.tsx`
+- `src/server/index.ts`
+- `src/server/support-agent.ts`
+- `src/server/tools.ts`
+- `src/server/support-data.ts`
+- `src/server/local-prompt.ts`
 
-## What is intentionally missing at this point
+## Demo suggestion
 
-- No Langfuse UI narration yet
-- No managed prompt requirement
-- No dataset runs
-- No evaluator setup
+Ask one or two concrete questions:
 
-That keeps the starting point lightweight and easy to understand.
+- “How do I print a PDF from the laptop?”
+- “How do I turn Bluetooth on on my iPhone?”
 
+## Teaching point
+
+Before we talk about traces or evaluations, everyone should understand the actual product shape we are trying to improve. The smaller and clearer the app is, the easier the rest of the workshop becomes.

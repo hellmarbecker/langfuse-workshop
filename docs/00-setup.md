@@ -1,70 +1,58 @@
 # 00 Setup
 
-This setup step is intentionally front-loaded so the live workshop can stay focused on Langfuse itself rather than account friction.
+## How to think about this step
 
-## What participants need
+This step is about making the rest of the workshop frictionless. We are not teaching Langfuse features yet. We are removing setup surprises so the workshop time can go into tracing, monitoring, and experiments.
 
-- Node.js 20+
-- An Anthropic API key
-- A Langfuse Cloud EU account
-- Langfuse project API keys
+## Goal
 
-## Langfuse Cloud EU
+Make sure participants can:
 
-Use:
+- run the app locally
+- call the OpenAI API
+- connect to Langfuse Cloud EU
+- use the Langfuse CLI and Langfuse skill later in the workshop
 
-- Host: `https://cloud.langfuse.com`
+## What to prepare
 
-Add these to `.env`:
+- An OpenAI API key
+- A Langfuse project on the EU cloud region
+- Langfuse public and secret keys
+- Node.js and npm
+
+## Environment variables
+
+Use `.env.example` as the template:
 
 ```bash
+OPENAI_API_KEY=...
+OPENAI_MODEL=gpt-4.1-mini
+
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_BASE_URL=https://cloud.langfuse.com
+LANGFUSE_PROMPT_NAME=dad-it-support-agent
+LANGFUSE_PROMPT_LABEL=production
+
+WORKSHOP_PROMPT_VARIANT=baseline
+DATASET_NAME=dad-it-support-workshop
 ```
 
-## Anthropic
-
-Add:
-
-```bash
-ANTHROPIC_API_KEY=...
-ANTHROPIC_MODEL=claude-3-5-haiku-latest
-```
-
-`claude-3-5-haiku-latest` keeps the workshop affordable. You can swap in a stronger model later if needed.
-
-## Install dependencies
+## Commands
 
 ```bash
 npm install
-```
-
-## Recommended Langfuse tooling
-
-Langfuse CLI:
-
-```bash
-npx langfuse-cli api __schema
-```
-
-Langfuse skill:
-
-```bash
-npx skills add langfuse/skills --skill "langfuse"
-```
-
-## Run the app
-
-```bash
 npm run dev
 ```
 
-Then open:
+Open [http://127.0.0.1:3333](http://127.0.0.1:3333).
 
-- [http://127.0.0.1:3333](http://127.0.0.1:3333)
+## Langfuse-specific prep
 
-## Workshop framing
+- Ask participants to install the Langfuse CLI.
+- Ask participants to install the Langfuse skill if that is part of the workshop environment.
+- Point out that Langfuse credentials are optional for the earliest app step but required for tracing, prompts, datasets, and experiments.
 
-Even if Langfuse credentials are missing, the app still runs with the local fallback prompt. That is deliberate: it keeps later checkpoints jumpable and lets you demo the base app before the observability layer is added.
+## Teaching note
 
+Call out that the workshop starts with a working OpenAI app first. Langfuse is added deliberately in later steps so participants can feel what each layer changes.

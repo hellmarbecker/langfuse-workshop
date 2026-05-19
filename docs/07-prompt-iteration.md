@@ -1,44 +1,27 @@
 # 07 Prompt Iteration
 
-This checkpoint closes the loop: make a concrete change, run again, and compare.
+## How to think about this step
 
-## Current prompt variants
+This is where the loop closes. We found behavior in traces, defined scope with a dataset, ran an experiment, and now we change something on purpose to see whether it improves results.
 
-The repo includes two local variants:
+## Goal
 
-- `baseline`
-- `gentler`
+Make one prompt change, rerun the same dataset, and compare the results side by side.
 
-File:
+## Suggested workshop move
 
-- `src/server/local-prompt.ts`
+- Publish a second prompt variant or update the Langfuse prompt
+- Change `WORKSHOP_PROMPT_VARIANT` or the Langfuse-managed prompt content
+- Run the dataset again
+- Compare both runs in Langfuse
 
-## Switch variants locally
+## What to inspect
 
-```bash
-WORKSHOP_PROMPT_VARIANT=gentler
-```
-
-Then rerun:
-
-```bash
-npm run dataset:run
-```
-
-## Optional Langfuse-managed versioning flow
-
-1. publish the prompt variant to Langfuse
-2. label it appropriately
-3. rerun the dataset
-4. compare runs side by side in Langfuse
-
-## What to look for
-
-- does the prompt reduce harsh or confusing answers?
-- does it improve ambiguous cases?
-- does it hurt concise mechanical tasks like Bluetooth or printing?
+- qualitative differences in individual answers
+- `keyword_overlap` changes across runs
+- which items improved
+- which items regressed
 
 ## Teaching point
 
-A prompt change is only meaningful when you can compare it against a stable baseline.
-
+This step makes “evaluation” click for many people. The value is not the single score by itself. The value is that one change can now be inspected, compared, and discussed systematically.

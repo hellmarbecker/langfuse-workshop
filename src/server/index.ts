@@ -4,15 +4,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import type { ChatRequest } from "../shared/types";
-import { runSupportConversation } from "./anthropic-agent";
+import { runSupportConversation } from "./support-agent";
 import { env, isLangfuseConfigured } from "./env";
 import { ensureTracingInitialized, shutdownTracing } from "./instrumentation";
-import { SUPPORT_PROFILES } from "./support-data";
+import { DEFAULT_SUPPORT_CONTEXT } from "./support-data";
 
 ensureTracingInitialized();
 
 const requestSchema = z.object({
-  profileId: z.string().min(1),
   sessionId: z.string().min(1),
   userId: z.string().optional(),
   messages: z
@@ -33,19 +32,19 @@ app.use(express.json({ limit: "1mb" }));
 app.get("/api/health", (_request, response) => {
   response.json({
     ok: true,
-    provider: "anthropic",
+    provider: "openai",
     tracingConfigured: isLangfuseConfigured()
   });
 });
 
-app.get("/api/profiles", (_request, response) => {
-  response.json(SUPPORT_PROFILES);
+app.get("/api/support-context", (_request, response) => {
+  response.json(DEFAULT_SUPPORT_CONTEXT);
 });
 
 app.post("/api/chat", async (request, response) => {
   try {
     const payload = requestSchema.parse(request.body) as ChatRequest;
-    const { result } = await runSupportConversation(payload);
+    const result = await runSupportConversation(payload);
     response.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown server error";
@@ -62,7 +61,7 @@ app.use((_request, response) => {
 });
 
 const server = app.listen(env.port, "127.0.0.1", () => {
-  console.log(`Pocket Support server listening on http://127.0.0.1:${env.port}`);
+  console.log(`Dad IT Support Agent server listening on http://127.0.0.1:${env.port}`);
 });
 
 async function shutdown() {
@@ -72,4 +71,3 @@ async function shutdown() {
 
 process.on("SIGINT", () => void shutdown());
 process.on("SIGTERM", () => void shutdown());
-

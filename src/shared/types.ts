@@ -7,11 +7,11 @@ export type ChatMessage = {
   timestamp: string;
 };
 
-export type SupportProfile = {
+export type SupportContext = {
   id: string;
   label: string;
   relationship: string;
-  primaryDevice: string;
+  devices: string[];
   deviceSummary: string;
   responseStyle: string;
   notableApps: string[];
@@ -20,7 +20,6 @@ export type SupportProfile = {
 };
 
 export type ChatRequest = {
-  profileId: string;
   messages: ChatMessage[];
   sessionId: string;
   userId?: string;
@@ -31,8 +30,8 @@ export type ChatResponse = {
   promptSource: "local" | "langfuse";
   usedTools: string[];
   traceMeta: {
-    profileId: string;
-    profileLabel: string;
+    contextId: string;
+    contextLabel: string;
     model: string;
   };
 };
@@ -42,4 +41,3 @@ export type HealthResponse = {
   provider: string;
   tracingConfigured: boolean;
 };
-

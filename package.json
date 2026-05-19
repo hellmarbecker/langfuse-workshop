@@ -1,5 +1,5 @@
 {
-  "name": "langfuse-parent-support-workshop",
+  "name": "langfuse-dad-it-support-workshop",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,15 +17,18 @@
     "dataset:run": "tsx scripts/run-dataset.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "latest",
     "@langfuse/client": "latest",
+    "@langfuse/openai": "latest",
     "@langfuse/otel": "latest",
     "@langfuse/tracing": "latest",
     "@opentelemetry/sdk-node": "latest",
     "dotenv": "latest",
     "express": "latest",
+    "openai": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-markdown": "latest",
+    "remark-gfm": "latest",
     "zod": "latest"
   },
   "devDependencies": {
@@ -41,4 +44,3 @@
     "vite": "latest"
   }
 }
-

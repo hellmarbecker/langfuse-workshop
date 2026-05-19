@@ -6,7 +6,7 @@ import {
   getLocalPromptTemplate,
   type PromptVariant
 } from "./local-prompt";
-import type { SupportProfile } from "../shared/types";
+import type { SupportContext } from "../shared/types";
 
 let langfuseClient: LangfuseClient | null = null;
 
@@ -34,13 +34,14 @@ export type ResolvedPrompt = {
     version: number;
     isFallback: boolean;
   };
+  langfusePrompt?: unknown;
   variant: PromptVariant;
 };
 
-export async function resolveSupportPrompt(profile: SupportProfile): Promise<ResolvedPrompt> {
+export async function resolveSupportPrompt(context: SupportContext): Promise<ResolvedPrompt> {
   const variant = (env.workshopPromptVariant as PromptVariant) || "baseline";
   const fallback = getLocalPromptTemplate(variant);
-  const variables = buildPromptVariables(profile);
+  const variables = buildPromptVariables(context);
   const langfuse = getLangfuseClient();
 
   if (!langfuse || !env.langfusePromptName) {
@@ -66,6 +67,7 @@ export async function resolveSupportPrompt(profile: SupportProfile): Promise<Res
       version: prompt.version,
       isFallback: prompt.isFallback
     },
+    langfusePrompt: prompt,
     variant
   };
 }
@@ -77,7 +79,7 @@ export async function publishSupportPrompt(variant: PromptVariant) {
     throw new Error("Langfuse credentials are required to publish prompts.");
   }
 
-  const name = env.langfusePromptName || "parent-support-agent";
+  const name = env.langfusePromptName || "dad-it-support-agent";
   const label = env.langfusePromptLabel || "production";
 
   await langfuse.prompt.create({
@@ -89,4 +91,3 @@ export async function publishSupportPrompt(variant: PromptVariant) {
 
   return { name, label, variant };
 }
-

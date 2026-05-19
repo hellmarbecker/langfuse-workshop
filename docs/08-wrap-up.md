@@ -1,25 +1,30 @@
 # 08 Wrap-up
 
-By the end of the workshop, participants should have seen one full Langfuse loop in a concrete app.
+## How to think about this step
 
-## What they learned
+The wrap-up is where the workshop shifts from “we built a demo” to “we learned a repeatable engineering loop.”
 
-- how to trace an agent end to end
-- how to inspect generations and tool usage
-- how to manage prompts without making the app brittle
-- how to define scope and detect interesting production events
-- how to seed a dataset from the expected application surface
-- how to run experiments and compare outcomes
-- how to use that loop to justify prompt or system changes
+## What participants should leave with
 
-## Short-workshop stopping point
+- how to trace an LLM app
+- how to connect prompts to traces
+- how to detect interesting production behavior
+- how to turn scope into a starter dataset
+- how to run experiments on the same app logic
+- how to compare runs after a prompt change
 
-If the session ends after monitoring, the key message is still intact:
+## Bigger picture
 
-- tracing shows what happened
-- monitoring shows what deserves attention next
-- datasets and experiments are the natural next step
+The point of Langfuse in this workshop is not just observability. It is giving teams a shared surface for:
 
-## Suggested final message
+- understanding behavior
+- collecting representative examples
+- comparing changes
+- improving systems continuously
 
-Langfuse is not one isolated feature. It is the connective tissue between building, observing, evaluating, and improving an LLM application over time.
+## Good closing questions
+
+- What did tracing reveal that was invisible before?
+- Which production events would you monitor first in your own app?
+- What would you add to the starter dataset next?
+- What change would you test after the first prompt iteration?

@@ -1,49 +1,45 @@
 # 05 Dataset
 
-Once monitoring has surfaced interesting production behavior, the next step is to seed a representative test set.
+## How to think about this step
 
-## Dataset in this repo
+This step turns interesting product scope into reusable test cases. A dataset is our first move from “I noticed something in production” to “I can test this repeatedly.”
 
-The starter dataset lives in:
+## Goal
+
+Seed an initial dataset that reflects the real scope of the Dad IT Support Agent.
+
+## Dataset shape in this repo
+
+Each item uses:
+
+- `input.messages`
+- `expectedOutput.idealAnswer`
+- `expectedOutput.expectedKeywords`
+
+This keeps the experiment input close to the same message-array shape the app already uses in production traces.
+
+## Files to point at
 
 - `data/seed-dataset.json`
+- `scripts/seed-dataset.ts`
 
-It covers:
-
-- iPhone, Windows, and Android device help
-- in-scope requests
-- adjacent-scope requests
-- clearly out-of-scope requests
-- a few ambiguity and limitation cases
-
-## Seed it into Langfuse
+## Seed command
 
 ```bash
 npm run dataset:seed
 ```
 
-This uses:
+## What the starter dataset should cover
 
-- `scripts/seed-dataset.ts`
-
-## Dataset item shape
-
-Each item contains:
-
-- `input.profileId`
-- `input.message`
-- `expectedOutput.idealAnswer`
-- `expectedOutput.expectedKeywords`
-- metadata for category and scope
-
-## Why expected keywords are included
-
-They enable a tiny deterministic score in code without replacing the real evaluator story. This is helpful for showing that:
-
-- manual scores are possible
-- LLM-as-a-judge is not the only evaluation option
+- iPhone Bluetooth
+- iPhone Wi-Fi
+- photos and WhatsApp
+- Maps basics
+- Windows Wi-Fi
+- printing and downloads
+- out-of-scope requests
+- limitation cases such as passwords or live location
 
 ## Teaching point
 
-The dataset is not supposed to be perfect. It is supposed to be representative enough to start comparing runs in a disciplined way.
-
+The dataset is not “all possible requests.” It is a first representative slice of the app’s intended scope and failure modes.

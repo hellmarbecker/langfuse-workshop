@@ -14,14 +14,20 @@ async function main() {
     baseUrl: env.langfuseBaseUrl
   });
 
-  await langfuse.api.datasets.create({
-    name: env.datasetName,
-    description: "Starter workshop dataset for the parent-support agent",
-    metadata: {
-      source: "repo-seed",
-      workshop: "langfuse-parent-support"
+  try {
+    await langfuse.api.datasets.create({
+      name: env.datasetName,
+      description: "Starter workshop dataset for the Dad IT Support Agent",
+      metadata: {
+        source: "repo-seed",
+        workshop: "langfuse-dad-it-support"
+      }
+    });
+  } catch (error) {
+    if (!(error instanceof Error) || !/exists|duplicate/i.test(error.message)) {
+      throw error;
     }
-  });
+  }
 
   for (const item of seedDataset) {
     await langfuse.api.datasetItems.create({
@@ -38,4 +44,3 @@ async function main() {
 }
 
 void main();
-
