@@ -66,112 +66,44 @@ That is the whole minimum. Run `npm run dev`, ask one question in the UI, open L
 
 The first-trace version shows each OpenAI call as its own top-level generation. Tool calls live inside the generation’s `tool_calls` field, and there is no “one turn” parent grouping everything. We fix both with `observe(...)`.
 
-### Wrap the agent function
+The key insight: `observe(fn, opts)` accepts any async function reference and returns a wrapped version with the same signature. That means we don't have to relocate the existing function body — we just rename it, then export a wrapped version.
 
-In `src/server/support-agent.ts`, add the import:
+### Wrap the agent function — three surgical edits
+
+**1. Add the import** to `src/server/support-agent.ts`:
 
 ```ts
 import { observe } from "@langfuse/tracing";
 ```
 
-Then **replace your existing `runSupportConversation` function entirely** with the block below. The body is the same as before — it has just been moved inside an `observe(...)` call, and a thin re-export sits underneath:
+**2. Demote the existing function.** Find this line:
 
 ```ts
-const observedRunSupportConversation = observe(
-  async (request: ChatRequest): Promise<ChatResponse> => {
-    const context = getSupportContext();
-    const promptText = compileLocalPrompt(
-      getLocalPromptTemplate("baseline"),
-      buildPromptVariables(context)
-    );
-    const transcript: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      {
-        role: "system",
-        content: promptText
-      },
-      ...toOpenAIMessages(request.messages)
-    ];
-    const usedTools = new Set<string>();
-
-    let finalAnswer = "";
-
-    for (let attempt = 0; attempt < 6; attempt += 1) {
-      const response = await openai.chat.completions.create({
-        model: env.openaiModel,
-        temperature: 0.2,
-        messages: transcript,
-        tools: TOOL_DEFINITIONS,
-        tool_choice: "auto"
-      });
-
-      const message = response.choices[0]?.message;
-
-      if (!message) {
-        throw new Error("OpenAI returned no assistant message.");
-      }
-
-      transcript.push(message as OpenAI.Chat.Completions.ChatCompletionMessageParam);
-
-      const toolCalls = message.tool_calls ?? [];
-
-      if (toolCalls.length === 0) {
-        finalAnswer = readAssistantText(message);
-        break;
-      }
-
-      for (const toolCall of toolCalls) {
-        if (toolCall.type !== "function") {
-          continue;
-        }
-
-        usedTools.add(toolCall.function.name);
-
-        const parsedArguments = parseToolArguments(toolCall.function.arguments);
-        const result =
-          parsedArguments === null
-            ? {
-                ok: false,
-                error: `The tool arguments for ${toolCall.function.name} were not valid JSON.`
-              }
-            : await executeTool(toolCall.function.name, parsedArguments);
-
-        transcript.push({
-          role: "tool",
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(result)
-        });
-      }
-    }
-
-    if (!finalAnswer) {
-      finalAnswer =
-        "I ran out of room before finishing that answer. Please ask the question once more in a slightly shorter way.";
-    }
-
-    return {
-      answer: finalAnswer,
-      promptSource: "local",
-      usedTools: [...usedTools],
-      traceMeta: {
-        contextId: context.id,
-        contextLabel: context.label,
-        model: env.openaiModel
-      }
-    };
-  },
-  { name: "dad-it-support-chat-turn", asType: "agent" }
-);
-
 export async function runSupportConversation(request: ChatRequest): Promise<ChatResponse> {
-  return observedRunSupportConversation(request);
-}
 ```
 
-`observe(...)` auto-captures the function argument as the trace input and the return value as the trace output.
+Drop the `export` and rename it:
+
+```ts
+async function runSupportConversationInner(request: ChatRequest): Promise<ChatResponse> {
+```
+
+The function body stays exactly as it is. You do not touch it.
+
+**3. Add the wrapped export at the bottom of the file:**
+
+```ts
+export const runSupportConversation = observe(runSupportConversationInner, {
+  name: "dad-it-support-chat-turn",
+  asType: "agent"
+});
+```
+
+`index.ts` still imports `runSupportConversation` the same way — it just happens to be a `const` now. `observe(...)` auto-captures the argument as the trace input and the return value as the trace output.
 
 ### Wrap each tool
 
-In `src/server/tools.ts`, add the import and **replace your existing `executeTool` block** with the three definitions below:
+In `src/server/tools.ts`, the inline switch bodies in `executeTool` can't be observed in place — each tool has to be its own function so `observe` has something to wrap. Add the import and the two observed helpers above `executeTool`, then redirect the switch at them.
 
 ```ts
 import { observe } from "@langfuse/tracing";
