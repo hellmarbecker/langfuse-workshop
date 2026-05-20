@@ -8,7 +8,13 @@ git checkout checkpoint/02-tracing-start
 
 This is the blank slate for the tracing step — same code as `checkpoint/01-base-app`, with no Langfuse wiring yet. The Langfuse packages are already in `package.json` — run `npm install` if you haven't. Make sure `.env` has your `OPENAI_API_KEY` and Langfuse keys.
 
+## Why we trace
+
+TODO:Here is a very short paragraph on why tracing is important, and then let's link to our academy page on tracing. Tracing helps you log every step your agent is taking to achieve a certain goal and makes it possible for you to review inputs and outputs after things have happened. It is transparency into what is actually going on in your system and which inputs and outputs are seen in which order. Make a nicer sentence out of it, and then say that if you want to learn more about tracing and why it's important, you can check out our academy page. And say if people want the technicalities, they can check out the docs page.
+
 ## Goal
+
+TODO: In the short explanation, whenever the agent asks something, it first says "bupubu" then looks up the user information, something like this. To really see if this is going on, we want to log each of these steps. The goal is to make one chat turn and ask the trace with the agent run bupubu.
 
 Make one chat turn a nested trace with the agent run, the OpenAI generation, and the two tool calls — built up in three steps that mirror the agent's structure.
 
@@ -21,10 +27,11 @@ We will build up the trace in three steps:
 3. **Recording tool calls** — make each tool invocation its own observation.
 
 User/session attribution and tags come in `04-monitoring`.
+TODO: Don't talk about attribution. This is a weird word. Let's say user and session information will be picked up in 04 monitoring. Skip the tags. We don't want tags.
 
 ## Step 1 — First trace
 
-We want telemetry on the OpenAI calls themselves. Two changes are enough.
+We want observability on the OpenAI calls themselves to see what the inputs and outputs are, and how much cost, tokens and time is spent. Two changes are enough.
 
 ### `src/server/index.ts`
 
@@ -63,6 +70,7 @@ const response = await openai.chat.completions.create({
 
 The old `getOpenAIClient()` helper becomes unused and can be deleted.
 
+
 **Verify:** `npm run dev`, ask one question, refresh Langfuse — you should see one generation per OpenAI call with prompt, response, tokens, and latency. Each generation is still its own top-level trace; we fix that next.
 
 <!-- TODO: screenshot of the Langfuse traces list after Step 1 — multiple top-level OpenAI generation traces, no agent grouping yet. -->
@@ -71,7 +79,7 @@ The old `getOpenAIClient()` helper becomes unused and can be deleted.
 
 ## Step 2 — Nested traces
 
-To put the generations into context we group them under one agent run per turn. Three surgical edits in `src/server/support-agent.ts` — no function body changes.
+To put the generations into context we group them under one agent run per turn. Three edits in `src/server/support-agent.ts` — no function body changes.
 
 **1. Add the import:**
 
@@ -93,6 +101,7 @@ async function runSupportConversationInner(request: ChatRequest): Promise<ChatRe
 
 The body stays exactly as it is.
 
+
 **3. Add the wrapped export at the bottom of the file:**
 
 ```ts
@@ -110,9 +119,11 @@ export const runSupportConversation = observe(runSupportConversationInner, {
 
 > 📷 *Screenshot placeholder: one `dad-it-support-chat-turn` (type `agent`) per turn with the OpenAI generation as a child.*
 
+
+
 ## Step 3 — Recording tool calls
 
-The OpenAI generation already mentions the tool calls in its `tool_calls` output, but we have no observation for the actual tool execution — no way to see what input went in and what came out. Same `observe(...)` pattern, applied to each tool.
+The OpenAI generation already mentions the tool calls in its `tool_calls` output, but we have no observation for the actual tool execution — no way to see what input went in and what came out. The same `observe(...)` pattern, can be applied to each tool.
 
 ### `src/server/tools.ts`
 
@@ -177,9 +188,6 @@ export async function executeTool(name: string, input: Record<string, unknown>):
 
 > 📷 *Screenshot placeholder: the full trace — `dad-it-support-chat-turn` (agent) with the OpenAI generation **and** `get_support_context` + `search_help_library` tool observations as siblings underneath.*
 
-## Where the bootstrap lives in this repo
-
-`src/server/instrumentation.ts` already wraps the inline `NodeSDK.start()` snippet from above with two helpers, `ensureTracingInitialized()` (no-op when keys are missing) and `shutdownTracing()` (flushes spans on exit), and `index.ts` calls those instead of inlining. You do not need to edit either file — read `instrumentation.ts` once and move on.
 
 ## How to verify you are done
 

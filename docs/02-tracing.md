@@ -191,12 +191,6 @@ Ask one question that triggers both tools — for example, *"How do I reconnect 
 2. One nested OpenAI generation per model call, with prompt, response, tokens, latency.
 3. Two nested tool observations (`get_support_context`, `search_help_library`) with their inputs and outputs.
 
-## Where the bootstrap lives in this repo
-
-For production use it's nicer to skip tracing cleanly when Langfuse keys are missing and to flush on shutdown. In this repo that's factored into `src/server/instrumentation.ts`, which exposes `ensureTracingInitialized()` and `shutdownTracing()`. The body is the same `LangfuseSpanProcessor` + `NodeSDK.start()` you saw above. `src/server/index.ts` calls those helpers instead of inlining.
-
-You don't have to write `instrumentation.ts` to follow this step — the inline snippet works. Reading it once is enough.
-
 ## Teaching point
 
 Same pattern, different observation types, same concept. `observe(fn, { asType: "agent" })` for the chat turn, `observe(fn, { asType: "tool" })` for each tool, and `observeOpenAI(client)` is essentially a specialized version of the same wrap-and-emit pattern, packaged for the OpenAI SDK. Once you internalize *"wrap the thing you want to see, give it a name, give it a type,"* you can structure any application this way.

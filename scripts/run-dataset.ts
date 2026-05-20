@@ -1,14 +1,15 @@
 import "dotenv/config";
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
 import { randomUUID } from "node:crypto";
 import { LangfuseClient } from "@langfuse/client";
 import type { ChatMessage } from "../src/shared/types";
 import { env } from "../src/server/env";
-import {
-  ensureTracingInitialized,
-  flushTracing,
-  shutdownTracing
-} from "../src/server/instrumentation";
 import { runSupportConversation } from "../src/server/support-agent";
+
+const langfuseSpanProcessor = new LangfuseSpanProcessor();
+const sdk = new NodeSDK({ spanProcessors: [langfuseSpanProcessor] });
+sdk.start();
 
 type DatasetInput = {
   messages: Array<{
@@ -48,8 +49,6 @@ async function main() {
   if (!env.langfusePublicKey || !env.langfuseSecretKey) {
     throw new Error("Langfuse credentials are required to run dataset experiments.");
   }
-
-  ensureTracingInitialized();
 
   const langfuse = new LangfuseClient({
     publicKey: env.langfusePublicKey,
@@ -97,8 +96,8 @@ async function main() {
 
   console.log(await result.format());
   await langfuse.flush();
-  await flushTracing();
-  await shutdownTracing();
+  await langfuseSpanProcessor.forceFlush();
+  await sdk.shutdown();
 }
 
 void main();
