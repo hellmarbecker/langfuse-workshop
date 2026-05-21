@@ -92,15 +92,14 @@ Langfuse ships a **Correctness** LLM-as-a-judge template that compares an actual
    - Scope: **Dataset runs**
    - Dataset: `dad-it-support-workshop`
 3. **Map the template variables** to the trace's input/output and the dataset item's expected output:
-   - `question` (the user's query) ← `$.input.messages[-1].content` *or* `$.input.messages` (the template can usually accept either)
-   - `actual_output` (what the agent answered) ← `$.output` (the experiment run records the agent's answer here)
-   - `expected_output` (the ideal answer) ← `$.expectedOutput.idealAnswer` from the dataset item
+   - `query` (the user's query) ← `$.input.messages[-1].content`
+   - `actual_output` (what the agent answered) ← Output (the experiment run records the agent's answer here)
+   - `ground_truth` (the ideal answer) ← Expected Output from the dataset item
 4. Pick the model you want the judge to use (e.g. `gpt-5.5-2026-04-23`) and save.
 5. Enable the evaluator.
 
-> If the template's exact variable names differ from `question` / `actual_output` / `expected_output`, only the names on the template side change — the JSONPaths above stay the same.
+![Correctness Variable Mapping](../images/experiments/correctness-variable-mapping.png)
 
-TODO: screenshot of varibale mapping
 
 ## Step 3 — Run the dataset
 
@@ -117,6 +116,8 @@ The script attaches `keyword_overlap` itself. The Correctness evaluator you set 
 - The new **Run** under your dataset → one row per item with **two** scores: `keyword_overlap` and `correctness`, plus a trace link.
 - **Item-level traces** — identical shape to production traces.
 - The dataset's **chart view** → per-run averages for both scores, ready for side-by-side comparison after future changes.
+
+![Experiment Results](../images/experiments/experiment-results.png)
 
 ## How to verify you are done
 
