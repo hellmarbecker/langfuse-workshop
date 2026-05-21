@@ -31,6 +31,14 @@ DATASET_NAME=dad-it-support-workshop
 
 ## Step 1 — Read the item shape
 
+**What happens**
+- Open `data/seed-dataset.json` and read one item end-to-end.
+- Note the three fields: `input` (required), `expectedOutput`, `metadata`.
+
+**Why**
+- `input.messages` matches `/api/chat` exactly so Step 06 can run the same `runSupportConversation(...)` against each item — no parallel "experiment app".
+- `expectedOutput` carries both an `idealAnswer` (for LLM-as-a-judge correctness) and `expectedKeywords` (for a deterministic keyword check) — two angles on the same answer.
+
 Dataset items in Langfuse follow a consistent shape — three fields, one required, two optional:
 
 | Field | Required | Purpose |
@@ -61,6 +69,14 @@ Two things to notice:
 - **`expectedOutput`** has both an `idealAnswer` (for human review and LLM-as-a-judge correctness scoring) and `expectedKeywords` (for a quick deterministic check that the answer covered the right steps).
 
 ## Step 2 — Seed the hosted dataset
+
+**What happens**
+- Run `npm run dataset:seed` to push the 14 items in `data/seed-dataset.json` into Langfuse as `dad-it-support-workshop`.
+- Verify in Langfuse → Datasets → `dad-it-support-workshop` → Items.
+
+**Why**
+- Programmatic seeding is the right path for a one-shot bulk load like this. Manual UI entry, CSV upload, and "turn live traces into items" are all valid for other situations.
+- The script upserts, so re-running is safe — useful when participants tweak the JSON mid-workshop.
 
 There are several ways to get items into a Langfuse dataset:
 

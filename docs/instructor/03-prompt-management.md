@@ -34,6 +34,14 @@ LANGFUSE_PROMPT_LABEL=production
 
 ## Step 1 — Publish the prompt (Langfuse UI)
 
+**What happens**
+- Open Prompts → New prompt in Langfuse, name it `dad-it-support-agent`, type `text`.
+- Paste the templated `SYSTEM_PROMPT` body — including the three `{{}}` placeholders — and label it `production`.
+
+**Why**
+- Lead with the manual UI flow because it's the workflow every future prompt iteration will use, not just the seed step.
+- Keeping the three placeholders intact is what lets Step 2 swap a local `replaceAll(...)` chain for `prompt.compile({...})` with the same three variables.
+
 The fastest way to create a prompt is to add it manually in the UI — same workflow your team will use for every future iteration.
 
 1. In Langfuse, open **Prompts → New prompt**.
@@ -48,6 +56,16 @@ The fastest way to create a prompt is to add it manually in the UI — same work
 > 💡 *Alternative — publish via script.* `scripts/publish-prompt.ts` pushes the local `SYSTEM_PROMPT` constant to Langfuse for you (`npm run prompt:publish`). The manual UI flow above is the same workflow your team will use for ongoing iteration, so we lead with it.
 
 ## Step 2 — Replace the local compile with a Langfuse fetch
+
+**What happens**
+- Add `const langfuse = new LangfuseClient()` at module top in `support-agent.ts`.
+- Replace the local `getPrompt(context)` body with `langfuse.prompt.get(env.langfusePromptName)`.
+- At the call site, compile with the same three variables (`langfusePrompt.compile(buildPromptVariables(context))`) and pass `langfusePrompt` as a second argument to the existing `observeOpenAI(...)` call.
+
+**Why**
+- Same `getPrompt` shape, new source — the smallest diff between the local-compile baseline and Langfuse-managed prompts.
+- The `langfusePrompt` option on `observeOpenAI` is what makes every generation carry the Prompt badge linking back to the published version — closes the trace ↔ prompt loop.
+- **No fallback**: if Langfuse is unreachable or the prompt isn't published, the agent throws. Silent fallback to a stale local prompt is the failure mode this chapter exists to prevent.
 
 The agent currently compiles `SYSTEM_PROMPT` locally with `buildPromptVariables(context)`. We swap the body of `getPrompt` for a Langfuse fetch — same compile-three-variables shape, new source.
 

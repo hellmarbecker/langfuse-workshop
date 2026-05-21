@@ -27,6 +27,15 @@ Your app traces every chat turn and links each generation to a Langfuse-managed 
 
 ## Step 1 — Wire the first two monitors (Langfuse UI)
 
+**What happens**
+- In Langfuse, create two new evaluators from the published library: **Out-of-Scope Detection** and **User Disagreement**.
+- Target the OpenAI generation observation (`generation` / `openai-chat-completion`), map `{{system_prompt}}` to `$.messages[0].content` and `{{last_user_message}}` to `$.messages[2].content`, pick a judge model, enable.
+
+**Why**
+- The system prompt sits at `messages[0]` of the *generation*, not the agent root — that's why we target the generation observation, not the root.
+- These two monitors catch the two highest-signal failure modes for Specs: requests the agent shouldn't handle at all, and Dad pushing back on an answer he just got.
+- No code change here. The trace shape from `02-tracing` already exposes everything a judge-based monitor needs.
+
 Langfuse ships published templates for **User Disagreement** and **Out-of-Scope Detection**. Both are LLM-as-a-judge evaluators that read variables from the trace. They expect access to the system prompt and the user's latest message, so the right place to target is the OpenAI generation observation — that's where the system prompt sits at `messages[0]`.
 
 1. In Langfuse, open **Evaluators → New evaluator** and pick the **Out-of-Scope Detection** template from the published library.

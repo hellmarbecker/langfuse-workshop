@@ -43,6 +43,15 @@ You have an agent that is traced, monitored, runs against a hosted dataset, and 
 
 ## Step 1 — Change the prompt
 
+**What happens**
+- Look at run 1 in Langfuse and pick a failure mode worth fixing — usually low-`correctness` items where the agent didn't refuse out-of-scope requests cleanly.
+- Edit the prompt in the Langfuse UI (recommended) or republish from code (`npm run prompt:publish`), and promote the new version to the `production` label.
+
+**Why**
+- Change one thing at a time so the next run's score delta is attributable to that one thing.
+- Editing in the UI is the recommended path because it doesn't require a code deploy — non-engineers can iterate too.
+- The Langfuse resolver fetches by label, so promoting a new version to `production` is what makes the next request pick it up automatically.
+
 The change should be informed by what you saw in run 1 — for example, items where `correctness` was low because the agent danced around an out-of-scope question instead of refusing it cleanly. A concrete edit:
 
 > Add a rule: *"If a request is outside iPhone help (taxes, travel booking, anything that needs live account access), say so directly in one short sentence — what you can't help with and what you can — then stop. Do not attempt to answer the request."*
@@ -71,6 +80,14 @@ Either way you end up with a new prompt version, and the next `runSupportConvers
 
 ## Step 2 — Rerun the dataset
 
+**What happens**
+- Run `npm run dataset:run` again. Same script, same dataset, new prompt version.
+- A second run row appears under the dataset, linked to the new prompt version.
+
+**Why**
+- The script doesn't change between runs. That's the point: we are measuring the effect of one change (the prompt) against a fixed pipeline.
+- The Correctness evaluator from step 06 picks up the new run automatically and scores every item.
+
 ```bash
 npm run dataset:run
 ```
@@ -78,6 +95,14 @@ npm run dataset:run
 Now there are two runs under the same dataset, each linked to a different prompt version. The same Correctness evaluator from step 06 scores the new run automatically.
 
 ## Step 3 — Compare
+
+**What happens**
+- Open Dataset → **Runs** tab → both rows show `keyword_overlap` and `correctness` averages side by side.
+- Open the Chart view for per-run averages, then open individual items and read both answers.
+
+**Why**
+- A single score in isolation tells you almost nothing. The same score *paired with a deliberate change* is suddenly informative.
+- Per-item reading is where the real signal usually lives — averages can mask regressions on the few items you cared about most.
 
 In Langfuse:
 

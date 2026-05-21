@@ -31,6 +31,13 @@ Your dataset is seeded in Langfuse. `scripts/run-dataset.ts` is already in the r
 
 ## Step 1 — Understand the run script
 
+**What happens**
+- Open `scripts/run-dataset.ts` and walk the four annotated sections: boot OTel, load dataset, run each item through `runSupportConversation(...)`, attach `keyword_overlap` to the trace.
+
+**Why**
+- The script does not re-implement the agent. It calls the same `runSupportConversation(...)` the web app does, so experiment traces have the same shape as production traces — monitoring and experiments are cumulative, not parallel.
+- `dataset.runExperiment(...)` is what rolls the per-item traces into one comparable "run" row in Langfuse.
+
 Open `scripts/run-dataset.ts`. The file is annotated with numbered comments (`// --- 1. Boot the OpenTelemetry SDK ...`, etc.) so you can read it section by section. The structure:
 
 1. Load the hosted dataset from Langfuse by `DATASET_NAME`.
@@ -41,6 +48,15 @@ Open `scripts/run-dataset.ts`. The file is annotated with numbered comments (`//
 The crucial point: we are not running a *different* implementation. The traces produced here are the same shape as production traces — same `dad-it-support-chat-turn` root, same OpenAI generation, same tool spans. That's what makes monitoring + experiments cumulative rather than parallel.
 
 ## Step 2 — Set up the correctness evaluator in Langfuse
+
+**What happens**
+- In Langfuse, create a new evaluator from the **Correctness** template, scoped to **Dataset runs** on `dad-it-support-workshop`.
+- Map the template variables: `query` ← `$.input.messages[-1].content`, `actual_output` ← Output, `ground_truth` ← Expected Output.
+- Pick the judge model, save, enable.
+
+**Why**
+- Keyword match is fast and cheap but only tells you whether the right words appeared. Correctness (LLM-as-a-judge) tells you whether the answer is actually right, especially when wording can vary.
+- Running both together gives the two complementary angles on a single run — that's the real teaching moment in this chapter.
 
 Langfuse ships a **Correctness** LLM-as-a-judge template that compares an actual answer to an ideal answer and returns a score. We wire it up against the experiment runs so every item gets both a deterministic keyword score and a model-judged correctness score.
 
@@ -58,6 +74,14 @@ Langfuse ships a **Correctness** LLM-as-a-judge template that compares an actual
 If the template's exact variable names differ from `question` / `actual_output` / `expected_output`, only the names on the template side change — the JSONPaths above stay the same.
 
 ## Step 3 — Run the dataset
+
+**What happens**
+- Run `npm run dataset:run`. The script processes every dataset item through the agent and attaches `keyword_overlap` per trace.
+- The Correctness evaluator runs asynchronously over the new run rows shortly after.
+
+**Why**
+- This is the first time the dataset becomes a *baseline* — every future change is now measurable against this run.
+- Two scores per item, one per evaluator, gives the chart view in Step 6 something to compare.
 
 ```bash
 npm run dataset:run

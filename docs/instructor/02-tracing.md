@@ -32,6 +32,14 @@ User and session information is added in `04-monitoring`.
 
 ## Step 1 — First trace
 
+**What happens**
+- Start a Langfuse span processor in `src/server/index.ts` so OTel spans flow to Langfuse.
+- Wrap the OpenAI client inline with `observeOpenAI(...)` in `src/server/support-agent.ts`.
+
+**Why**
+- Without the processor nothing is exported; without the wrap there's no telemetry on the OpenAI call.
+- Inline wrap (no factory) means the next chapter only adds a second argument to the same call.
+
 As a first step we want to log the generations themselves. Without this we have no telemetry at all: the OpenAI call leaves the process, the model thinks, the answer comes back, and we have no record of any of it. Two small changes are enough to fix that.
 
 **Start the Langfuse span processor.** In `src/server/index.ts`, near the top:
@@ -64,6 +72,14 @@ Run `npm run dev`, ask one question in the UI, open Langfuse, and you should see
 ![Langfuse Traces view after Step 1 — each chat turn appears as standalone openai-chat-completion generations.](./images/tracing/02-tracing-step-1.png)
 
 ## Step 2 — Nested traces
+
+**What happens**
+- Import `observe` from `@langfuse/tracing` in `support-agent.ts`.
+- Rename `runSupportConversation` to `runSupportConversationInner` (drop `export`) and re-export it wrapped with `observe(..., { asType: "agent" })`.
+
+**Why**
+- Without grouping, multiple OpenAI calls per turn show up as disconnected top-level traces — there's no "one chat turn" view.
+- Wrapping the outer function gives a single agent-typed root that every child observation hangs off, with input/output auto-captured from the function signature.
 
 To set those generations into context we now want to group and nest them together. A single chat turn often involves more than one OpenAI call (the model decides to use a tool, we run the tool, we call OpenAI again with the tool result, and so on). Without grouping, those calls fly past in Langfuse as separate, disconnected traces. With grouping, one chat turn is one trace, and the OpenAI calls live underneath as children.
 
@@ -105,6 +121,14 @@ Refresh Langfuse and you should now see one root `dad-it-support-chat-turn` obse
 ![Trace tree after Step 2 — one dad-it-support-chat-turn agent root with the OpenAI generation as a child.](./images/tracing/02-tracing-step-2.png)
 
 ## Step 3 — Recording tool calls
+
+**What happens**
+- Extract the two inline tool bodies in `tools.ts` into their own functions wrapped with `observe(fn, { asType: "tool" })`.
+- Point the `executeTool` switch at the wrapped helpers instead of the raw bodies.
+
+**Why**
+- Tool execution is currently invisible — a wrong tool result silently corrupts the next OpenAI call with no observation to inspect.
+- `asType: "tool"` is the same wrap-and-emit pattern as the agent root and OpenAI generation; once learners see it three times they can apply it to anything.
 
 Our agent is using tools — that's how we designed it initially. While we can already see the tool calls in the generation output (they appear in the `tool_calls` field of the OpenAI response), we are not yet logging the tool inputs and outputs as their own observations. The actual tool execution is invisible: if a tool returns the wrong data, we'd see a confused final answer in the trace and have no way to point at the line where it went wrong.
 
