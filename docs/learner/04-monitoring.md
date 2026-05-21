@@ -60,7 +60,7 @@ For **User Disagreement**:
    | Template variable | Object field | JsonPath |
    | --- | --- | --- |
    | `{{conversation_history}}` | `Input` | `$.messages` |
-   | `{{last_user_message}}` | `Input` | `$.messages[-1].content` |
+   | `{{last_user_message}}` | `Input` | `$.messages[-1:].content` |
 
 4. Pick the judge model (e.g. `gpt-5.5-2026-04-23`) and save.
 5. Enable the evaluator.
