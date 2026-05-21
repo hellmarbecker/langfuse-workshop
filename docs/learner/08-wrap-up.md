@@ -17,7 +17,6 @@ You have walked through every loop step.
 - Run experiments on the same agent code with no parallel implementation.
 - Compare runs after changes and decide which setup is better — by score and by reading individual outputs.
 
-![How Specs handles a ticket — one agent, two tools, one model, each hop an observation in the trace.](../images/specs_illustration.png)
 
 ## Bigger picture
 

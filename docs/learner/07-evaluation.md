@@ -36,7 +36,6 @@ The shape is always the same: change *one* thing (or a configuration of multiple
 
 Change something in the prompt and improve the experiment results — measured by `correctness` and `keyword_overlap` going up across the dataset.
 
-![How Specs handles a ticket — one agent, two tools, one model, each hop an observation in the trace.](../images/specs_illustration.png)
 
 Three passes:
 
@@ -86,9 +85,9 @@ In Langfuse:
 
 - Dataset → **Runs** tab → both rows visible with `keyword_overlap` and `correctness` averages.
 - **Chart view** → per-run averages side by side.
-- Open a handful of items and read both answers — qualitative diffs are where the real signal usually is.
+- Add the new run as 'Compare with' in the sidebar
 
-TODO: add actual step by step for side by side result view
+![Side-by-side comparison](../images/evaluate-a-change/side-by-side-runs.png)
 
 Things to look for:
 
@@ -100,8 +99,6 @@ Things to look for:
 
 - Two runs appear under the dataset, linked to different prompt versions.
 - Both scores (`keyword_overlap`, `correctness`) have averages you can compare.
-- You can name one item that improved and one that didn't.
-- You can articulate why a single score isn't enough — it's the comparison that matters.
 
 ## Wrap-up
 
