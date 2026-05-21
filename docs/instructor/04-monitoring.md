@@ -71,13 +71,11 @@ Send three turns, one per monitor scenario:
 
 In Langfuse, wait a few seconds for the evaluator to run, then sort traces by the score. The out-of-scope and disagreement traces should bubble to the top.
 
-![Out-of-scope evaluator firing on a trace — the generation is flagged as out-of-scope, and the left-hand panel shows the agent's reasoning that the request is outside the iPhone-help scope.](./images/monitoring/04-monitoring-out-of-scope.png)
+![Out-of-scope evaluator firing on a trace — the generation is flagged as out-of-scope, and the left-hand panel shows the agent's reasoning that the request is outside the iPhone-help scope.](./images/monitoring/out-of-scope-example.png)
 
 When the out-of-scope monitor fires, you can confirm the chatbot rejected the request gracefully — exactly what we asked it to do. But those traces are also the most interesting ones to read: a steady stream of out-of-scope hits is often the earliest signal there's *additional scope* worth handling. *"Can you file my taxes?"* is silly, but *"Help me move photos to my new iPad"* might be a real feature request hiding in monitor output.
 
-<!-- TODO: screenshot of a user-disagreement trace where the evaluator scored `true`. -->
-
-> 📷 *Screenshot placeholder: a trace where the user disagreement evaluator scored `true`.*
+![User disagreement evaluator firing on a trace — Dad's follow-up pushes back on the agent's earlier answer, and the evaluator flags it as a disagreement.](./images/monitoring/user-disagrees-example.png)
 
 User disagreement is a much higher-signal event. When a user pushes back on an answer the agent just gave, something almost certainly went wrong — wrong tool result, missing context, an instruction that doesn't match the iPhone they're on. These are the traces to read first, and they're prime candidates to turn into dataset items in `05-dataset`.
 

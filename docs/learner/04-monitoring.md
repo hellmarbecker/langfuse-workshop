@@ -23,31 +23,50 @@ The goal of monitoring is finding the things that are worth knowing about for *y
 
 Monitoring also has a quality-tracking dimension — average score on some metric over time. We recommend **signal detection first**: tracking aggregate quality is most useful once you and your team have a clear opinion about what quality even means in your context, and the fastest way to form that opinion is to look at the surprising traces.
 
-![How Specs handles a ticket — one agent, two tools, one model, each hop an observation in the trace.](../images/specs_illustration.png)
+
 
 You don't need to change any code in this step. The trace shape from `02-tracing` already has everything a judge-based monitor needs at the root observation: the full conversation as input and the agent's answer as output.
 
 ## Step 1 — Wire the first two monitors (Langfuse UI)
 
-Langfuse ships published templates for **User Disagreement** and **Out-of-Scope Detection**. Both are LLM-as-a-judge evaluators that read variables from the trace. They expect access to the system prompt and the user's latest message, so the right place to target is the OpenAI generation observation — that's where the system prompt sits at `messages[0]`.
+Langfuse ships published templates for **User Disagreement** and **Out-of-Scope Request**. Both are LLM-as-a-judge evaluators that read variables from the trace. They expect access to the system prompt and the user's latest message, so the right place to target is the OpenAI generation observation — that's where the system prompt sits at `messages[0]`.
 
-1. In Langfuse, open **Evaluators → New evaluator** and pick the **Out-of-Scope Detection** template from the published library.
+For out **Out-of-Scope Request**:
+
+1. In Langfuse, open **Evaluators → New evaluator** and pick the **Out-of-Scope Request** template from the published library.
 2. Target the OpenAI generation:
    - Observation type: `generation`
-   - Observation name: `openai-chat-completion`
+   - Tool Call count = 0 (to exclude tool decisions)
 3. Map the template's variables from the generation's **Input**:
 
    | Template variable | Object field | JsonPath |
    | --- | --- | --- |
    | `{{system_prompt}}` | `Input` | `$.messages[0].content` |
-   | `{{last_user_message}}` | `Input` | `$.messages[2].content` |
+   | `{{last_user_message}}` | `Input` | `$.messages[.1:].content` |
 
    The index `[2]` works because our chat starts with Specs' opening greeting at `[1]`, so the user's latest message lands at `[2]`. If your conversation has a different opening shape, adjust the index.
 4. Pick the judge model (e.g. `gpt-5.5-2026-04-23`) and save.
 5. Enable the evaluator.
-6. Repeat the same setup for the **User Disagreement** template — same JsonPaths.
 
-TODO: screenshot of varibale mapping
+![Variable mapping](../images/monitoring/out-of-scope.png)
+
+For out **User Disagreement**:
+
+1. In Langfuse, open **Evaluators → New evaluator** and pick the **Out-of-Scope Request** template from the published library.
+2. Target the OpenAI generation:
+   - Observation type: `agent`
+3. Map the template's variables from the generation's **Input**:
+
+   | Template variable | Object field | JsonPath |
+   | --- | --- | --- |
+   | `{{conversation_history}}` | `Input` | `$.messages` |
+   | `{{last_user_message}}` | `Input` | `$.messages[-1].content` |
+
+4. Pick the judge model (e.g. `gpt-5.5-2026-04-23`) and save.
+5. Enable the evaluator.
+
+
+![Variable mapping for the User Disagreement evaluator.](../images/monitoring/user-disagreement-config.png)
 
 > 💡 *Custom evaluators.* The shipped templates are a fast on-ramp, but you don't have to use them. **Evaluators → New evaluator → Custom** lets you write your own prompt and define your own variables. Same mapping flow — point each variable at the right JsonPath on the right observation, and you're done.
 
@@ -66,13 +85,13 @@ Send three turns that should each light up one monitor:
 
 In Langfuse, wait for the evaluator to run (refresh after a few seconds), then sort traces by the evaluator score. The out-of-scope and disagreement traces should bubble to the top.
 
-![Out-of-scope evaluator firing on a trace — the generation is flagged as out-of-scope, and the left-hand panel shows the agent's reasoning that the request is outside the iPhone-help scope.](../images/monitoring/04-monitoring-out-of-scope.png)
+![Out-of-scope evaluator firing on a trace — the generation is flagged as out-of-scope, and the left-hand panel shows the agent's reasoning that the request is outside the iPhone-help scope.](../images/monitoring/out-of-scope-example.png)
+
+![User disagrees Example](../images/monitoring/user-disagrees-example.png)
+
 
 When the out-of-scope monitor fires, you can confirm the chatbot already rejected the request gracefully — exactly what we asked it to do. But those traces are also the most interesting ones to read end-to-end: a steady stream of out-of-scope hits is often the earliest signal that there's *additional scope* worth handling. *"Can you file my taxes?"* is silly, but *"Help me move photos to my new iPad"* might be a real feature request hiding in monitor output.
 
-<!-- TODO: screenshot of a user-disagreement trace where the evaluator scored `true`. -->
-
-> 📷 *Screenshot placeholder: a trace where the user disagreement evaluator scored `true` — the user's follow-up pushes back on the agent's earlier answer.*
 
 User disagreement is a much higher-signal event. When a user pushes back on an answer the agent just gave, something almost certainly went wrong — wrong tool result, missing context, an instruction that doesn't match the iPhone they're on. These are the traces you want to read first, and they're prime candidates to turn into dataset items for `05-dataset`.
 
@@ -80,7 +99,7 @@ User disagreement is a much higher-signal event. When a user pushes back on an a
 
 Good monitors are how you separate signal from noise. Production means a lot of traces, and the most important question is *which ones should I look at?* — monitors answer that.
 
-Once you have signal-detection monitors in place, the next step over time is **average-metric tracking** — picking quality metrics and watching them drift. The right way to choose those metrics is **error analysis**: look at a sample of the surprising traces you're now catching, group them by failure mode, and turn the failure modes into evaluators. The [monitoring lesson on the Academy](https://langfuse.com/academy/monitoring) goes deeper on this.
+Once you have signal-Request monitors in place, the next step over time is **average-metric tracking** — picking quality metrics and watching them drift. The right way to choose those metrics is **error analysis**: look at a sample of the surprising traces you're now catching, group them by failure mode, and turn the failure modes into evaluators. The [monitoring lesson on the Academy](https://langfuse.com/academy/monitoring) goes deeper on this.
 
 The traces you catch with these monitors are also the best source for the next step — `05-dataset` — because they're real examples of behavior you want to lock in or fix.
 
