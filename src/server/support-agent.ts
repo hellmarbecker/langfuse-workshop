@@ -2,45 +2,52 @@ import OpenAI from "openai";
 import { observeOpenAI } from "@langfuse/openai";
 import { observe, propagateAttributes } from "@langfuse/tracing";
 import { LangfuseClient } from "@langfuse/client";
-import type { ChatMessage, ChatRequest, ChatResponse } from "../shared/types";
-import { env, isLangfuseConfigured } from "./env";
+import type { ChatMessage, ChatRequest, ChatResponse, SupportContext } from "../shared/types";
+import { env } from "./env";
 import { getSupportContext } from "./support-data";
 import { TOOL_DEFINITIONS, executeTool } from "./tools";
 
-// --- The system prompt the agent runs on, kept here as a plain constant.
-//     Prompt management (step 03) publishes this to Langfuse and the agent
-//     fetches it back at request time, with this constant as the fallback.
-export const SYSTEM_PROMPT = `You are Dad IT Support Agent.
-You are talking directly to Dad. He opened this chat himself to get help with his iPhone.
+// SYSTEM_PROMPT is kept here as the source of truth that
+// scripts/publish-prompt.ts pushes to Langfuse. At runtime the agent
+// fetches the prompt from Langfuse and compiles it with variables —
+// see getPrompt() below.
+export const SYSTEM_PROMPT = `You are {{user_label}}'s IT Support Agent.
+You are talking directly to {{user_label}}. He opened this chat himself to get help with his iPhone.
 
-You do not yet know which iPhone Dad has or which apps he uses — call get_support_context to find out before giving any device-specific instructions.
+You do not yet know which iPhone {{user_label}} has or which apps he uses — call get_support_context to find out before giving any device-specific instructions.
+
+Response style:
+{{response_style}}
+
+Support scope:
+{{scope_summary}}
 
 Rules:
-- Speak directly to Dad in second person ("you", "your iPhone"). Never refer to Dad in the third person.
-- Call get_support_context as your very first tool call on each turn so you know which iPhone, iOS, and apps Dad has.
+- Speak directly to {{user_label}} in second person ("you", "your iPhone"). Never refer to {{user_label}} in the third person.
+- Call get_support_context as your very first tool call on each turn so you know which iPhone, iOS, and apps {{user_label}} has.
 - For step-by-step help, call search_help_library before giving the final answer.
 - Use short numbered steps with one action per line.
-- Mention what Dad should expect to see on his screen after important taps.
+- Mention what {{user_label}} should expect to see on his screen after important taps.
 - Be honest about limits. You cannot see his screen, passwords, or real-time location.
 - If the request is out of scope, say so kindly and redirect to the closest iPhone-help you can give.
 - Do not invent button names or settings paths that were not confirmed by tool results.
 `;
 
-let langfuse: LangfuseClient | null = null;
+export function buildPromptVariables(context: SupportContext) {
+  return {
+    user_label: context.label,
+    response_style: context.responseStyle,
+    scope_summary: context.scopeHighlights.join(", ")
+  };
+}
 
-// Returns the active Langfuse-managed prompt for this request, or null if
-// Langfuse prompt management isn't configured (the caller falls back to
-// the local SYSTEM_PROMPT). The `fallback` option on `prompt.get` covers
-// the case where Langfuse is reachable but the fetch fails.
+const langfuse = new LangfuseClient();
+
+// Fetch the active prompt version from Langfuse. Same signature as
+// the local-compile version from the previous checkpoint — different
+// source.
 async function getPrompt() {
-  if (!isLangfuseConfigured() || !env.langfusePromptName) {
-    return null;
-  }
-  langfuse ??= new LangfuseClient();
-  return await langfuse.prompt.get(env.langfusePromptName, {
-    fallback: SYSTEM_PROMPT,
-    cacheTtlSeconds: process.env.NODE_ENV === "development" ? 0 : 60
-  });
+  return await langfuse.prompt.get(env.langfusePromptName);
 }
 
 function toOpenAIMessages(
@@ -74,7 +81,7 @@ function parseToolArguments(argumentsText: string) {
 async function runSupportConversationInner(request: ChatRequest): Promise<ChatResponse> {
   const context = getSupportContext();
   const langfusePrompt = await getPrompt();
-  const systemPrompt = langfusePrompt ? langfusePrompt.compile() : SYSTEM_PROMPT;
+  const systemPrompt = langfusePrompt.compile(buildPromptVariables(context));
   const userId = request.userId ?? `workshop-${context.id}`;
 
   return propagateAttributes(
@@ -87,7 +94,7 @@ async function runSupportConversationInner(request: ChatRequest): Promise<ChatRe
     async () => {
       const openai = observeOpenAI(
         new OpenAI({ apiKey: env.openaiApiKey }),
-        langfusePrompt ? { langfusePrompt: langfusePrompt as never } : undefined
+        { langfusePrompt }
       );
 
       const transcript: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [

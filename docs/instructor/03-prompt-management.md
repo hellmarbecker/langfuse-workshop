@@ -8,7 +8,9 @@ Learn more in the [Langfuse prompts docs](https://langfuse.com/docs/prompts).
 
 ## Goal
 
-By the end of this step, the running app loads its system prompt from Langfuse instead of from the code. If Langfuse is unreachable the app silently falls back to the local copy so the dev loop never breaks. Every OpenAI generation in Langfuse carries a link back to the exact prompt version that produced it.
+By the end of this step the running app loads its system prompt template from Langfuse, compiles it with three context variables, and links every OpenAI generation back to the published version.
+
+There is **no local fallback** — if Langfuse isn't reachable or the prompt is missing, the chat fails loudly. The previous chapter's local compile is gone; Langfuse is the runtime source of truth.
 
 ![How Specs handles a ticket — one agent, two tools, one model, each hop an observation in the trace.](./images/specs_illustration.png)
 
@@ -18,10 +20,10 @@ By the end of this step, the running app loads its system prompt from Langfuse i
 git checkout checkpoint/03-prompt-management
 ```
 
-The app traces every chat turn and uses `SYSTEM_PROMPT` (a constant in `src/server/support-agent.ts`) as its system message. The Langfuse client package (`@langfuse/client`) and the `scripts/publish-prompt.ts` helper are already in the repo. Two steps:
+The agent uses `SYSTEM_PROMPT` (a templated string in `src/server/support-agent.ts`) plus a local `getPrompt(context)` that compiles its three placeholders (`{{user_label}}`, `{{response_style}}`, `{{scope_summary}}`) from the support context. Two steps:
 
-1. **Publish** the local `SYSTEM_PROMPT` to Langfuse so a versioned copy lives there.
-2. **Fetch and link** the prompt back inside the agent and pass it to `observeOpenAI` so traces carry the version badge.
+1. **Publish** the templated `SYSTEM_PROMPT` to Langfuse so a versioned copy lives there.
+2. **Replace the local compile with a Langfuse fetch** and link the resulting prompt to every OpenAI generation via `observeOpenAI`.
 
 Set these env vars in `.env`:
 
@@ -37,7 +39,7 @@ The fastest way to create a prompt is to add it manually in the UI — same work
 1. In Langfuse, open **Prompts → New prompt**.
 2. Name it `dad-it-support-agent` (matching `LANGFUSE_PROMPT_NAME`).
 3. Type: `text`.
-4. Paste the body of `SYSTEM_PROMPT` from `src/server/support-agent.ts`.
+4. Paste the body of `SYSTEM_PROMPT` from `src/server/support-agent.ts` — including the three `{{}}` placeholders.
 5. Label the version `production` (matching `LANGFUSE_PROMPT_LABEL`).
 6. Save.
 
@@ -45,49 +47,41 @@ The fastest way to create a prompt is to add it manually in the UI — same work
 
 > 💡 *Alternative — publish via script.* `scripts/publish-prompt.ts` pushes the local `SYSTEM_PROMPT` constant to Langfuse for you (`npm run prompt:publish`). The manual UI flow above is the same workflow your team will use for ongoing iteration, so we lead with it.
 
-## Step 2 — Fetch the prompt and link it to the generation
+## Step 2 — Replace the local compile with a Langfuse fetch
 
-The agent currently uses `SYSTEM_PROMPT` directly. We want it to fetch from Langfuse at request time and to pass the prompt object through to `observeOpenAI` so the generation gets linked to the version.
+The agent currently compiles `SYSTEM_PROMPT` locally with `buildPromptVariables(context)`. We swap the body of `getPrompt` for a Langfuse fetch — same compile-three-variables shape, new source.
 
-The whole change in `src/server/support-agent.ts`:
+The change in `src/server/support-agent.ts`:
 
 ```ts
 import { LangfuseClient } from "@langfuse/client";
 
-let langfuse: LangfuseClient | null = null;
+const langfuse = new LangfuseClient();
 
+// Replaces the local getPrompt from the previous checkpoint.
 async function getPrompt() {
-  if (!isLangfuseConfigured() || !env.langfusePromptName) {
-    return null;
-  }
-  langfuse ??= new LangfuseClient();
-  return await langfuse.prompt.get(env.langfusePromptName, {
-    fallback: SYSTEM_PROMPT,
-    cacheTtlSeconds: process.env.NODE_ENV === "development" ? 0 : 60
-  });
+  return await langfuse.prompt.get(env.langfusePromptName);
 }
 
-// inside runSupportConversationInner — fetch + compile:
+// inside runSupportConversationInner — fetch and compile with the
+// same three variables we used locally:
 const langfusePrompt = await getPrompt();
-const systemPrompt = langfusePrompt ? langfusePrompt.compile() : SYSTEM_PROMPT;
+const systemPrompt = langfusePrompt.compile(buildPromptVariables(context));
 
 // the same observeOpenAI call from step 02, with one extra argument:
 const openai = observeOpenAI(
   new OpenAI({ apiKey: env.openaiApiKey }),
-  langfusePrompt ? { langfusePrompt } : undefined
+  { langfusePrompt }
 );
-
-const transcript = [
-  { role: "system", content: systemPrompt },
-  ...toOpenAIMessages(request.messages)
-];
 ```
 
 Three things to notice:
 
 - The `observeOpenAI(...)` call itself didn't change — same client, same inline wrap as step 02. We just added a second argument carrying the `langfusePrompt`. Keeping the client inline (no factory) is what makes this diff so small.
-- `langfuse.prompt.get(name, { fallback })` — the `fallback` option means the call always resolves: if Langfuse is unreachable or the prompt is missing, the returned object's compiled body is the local `SYSTEM_PROMPT`. No throws, no degradation in user experience.
+- `langfusePrompt.compile(buildPromptVariables(context))` is the same three-variable compile we had locally. The Langfuse SDK does the placeholder substitution exactly the way the local `.replaceAll(...)` chain did.
 - Passing `langfusePrompt` into `observeOpenAI`'s options is what makes every generation carry the **Prompt** badge linking back to the exact published version. The [Langfuse OpenAI JS integration docs](https://langfuse.com/integrations/model-providers/openai-js) show the canonical pattern.
+
+**No fallback.** Marc's call: the previous chapter has the local `SYSTEM_PROMPT` + local compile; this chapter replaces both with Langfuse. If Langfuse keys are missing or the prompt isn't published, the agent throws and we see the failure rather than silently rendering the wrong prompt.
 
 ## Run and verify
 
@@ -102,10 +96,8 @@ Ask a question, then in Langfuse:
 
 ![A traced openai-chat-completion with the Prompt badge linking back to dad-it-support-agent · v1.](./images/prompt-management/03-prompt-management-prompt-badge.png)
 
-If your `.env` doesn't have Langfuse keys, `getPrompt()` returns `null` and the app uses `SYSTEM_PROMPT` directly — same answers, no Prompt badge on the generation.
-
 ## Teaching point
 
 Tracing without prompt management is a one-way street: you can see what the model did but you can't tell which prompt change caused which behavior. Prompt management closes the loop. Now every change in the Langfuse UI is a new version, every trace points at its version, and the eval and monitoring steps can compare versions head-to-head.
 
-A more straightforward way to wire prompt management in line with Langfuse best practices is the [**Langfuse skill**](https://langfuse.com/docs) (`/langfuse`). It applies the recommended caching, fallback, and linking patterns automatically. The hand-rolled walkthrough in this step exists so you understand what the skill is doing under the hood.
+A more straightforward way to wire prompt management in line with Langfuse best practices is the [**Langfuse skill**](https://langfuse.com/docs) (`/langfuse`). It applies the recommended patterns automatically. The hand-rolled walkthrough in this step exists so you understand what the skill is doing under the hood.
