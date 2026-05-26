@@ -1,6 +1,6 @@
 ---
 title: "Workshop: Setup"
-description: "Set up the workshop app with OpenAI and Langfuse credentials, configure evaluator access, and verify the local Dad IT Support Agent."
+description: "Set up the workshop app with OpenAI and Langfuse credentials, then verify the local Dad IT Support Agent."
 ---
 
 # 00 Setup
@@ -45,19 +45,7 @@ Leave the rest of the defaults as they are.
 
 Keep these values in your local `.env` only. Do not paste real API keys into shared workshop notes, transcripts, screenshots, or chat messages.
 
-## Step 3 — Configure the Langfuse evaluator model
-
-Later chapters use LLM-as-a-judge evaluators. Langfuse runs those judge calls from an **LLM Connection** inside your Langfuse project, so configure it before you reach monitoring or experiments.
-
-1. In Langfuse, open **Project Settings → LLM Connections**.
-2. Click **Add new LLM API key**.
-3. Choose **OpenAI**, name the connection, and paste your OpenAI API key into the secret field.
-4. Save the connection.
-5. Open **Evaluators → Set up evaluator**. If Langfuse asks for the default model first, choose the OpenAI connection and a structured-output-capable model such as `openai / gpt-4.1`, then save.
-
-After the default evaluator model is saved, you can close the evaluator setup flow. Chapters `04-monitoring` and `06-experiments` will return to this screen to pick the published evaluator templates.
-
-## Step 4 — Install and run
+## Step 3 — Install and run
 
 ```bash
 npm install
@@ -66,7 +54,7 @@ npm run dev
 
 Open [http://127.0.0.1:3333](http://127.0.0.1:3333).
 
-## Step 5 — Confirm what you see
+## Step 4 — Confirm what you see
 
 You should see the **Dad IT Support Agent** chat:
 
