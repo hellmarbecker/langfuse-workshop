@@ -49,7 +49,7 @@ import { LangfuseSpanProcessor } from "@langfuse/otel";
 new NodeSDK({ spanProcessors: [new LangfuseSpanProcessor()] }).start();
 ```
 
-The processor reads `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and `LANGFUSE_BASE_URL` from the environment.
+The processor reads `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and `LANGFUSE_BASE_URL` from the Node process environment. In this workshop, the server loads the repository `.env` before the Langfuse SDK starts, so edit `.env` instead of relying on exported shell values.
 
 ### `src/server/support-agent.ts`
 

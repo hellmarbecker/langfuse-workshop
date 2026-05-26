@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./load-env";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { LangfuseSpanProcessor } from "@langfuse/otel";
 import express from "express";

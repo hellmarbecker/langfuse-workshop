@@ -43,6 +43,8 @@ LANGFUSE_BASE_URL=https://cloud.langfuse.com
 
 Leave the rest of the defaults as they are.
 
+The workshop app always loads this repository's `.env` file for the server and helper scripts. If you have `LANGFUSE_*`, `OPENAI_*`, or `DATASET_NAME` values exported in your shell from another project, they will not override this file. To change the workshop configuration, edit `.env`.
+
 Keep these values in your local `.env` only. Do not paste real API keys into shared workshop notes, transcripts, screenshots, or chat messages.
 
 ## Step 3 — Install and run

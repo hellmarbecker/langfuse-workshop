@@ -1,3 +1,5 @@
+import "./load-env";
+
 export const env = {
   port: Number(process.env.PORT ?? 8787),
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",

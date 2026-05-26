@@ -44,13 +44,17 @@ Langfuse in this workshop is a *shared surface*, not just observability:
 
 When you go back to your own codebase, do this in order:
 
-1. **Run the [Langfuse CLI](https://langfuse.com/docs/api-and-data-platform/features/cli)** so you can manage prompts, datasets, and runs from the terminal. The CLI uses the same project API keys as the SDKs, so there is no separate CLI login step:
+1. **Run the [Langfuse CLI](https://langfuse.com/docs/api-and-data-platform/features/cli)** so you can manage prompts, datasets, and runs from the terminal. The CLI uses the same project API keys as the SDKs, so there is no separate CLI login step. Keep those values in your application's local `.env`:
+
+   ```dotenv
+   LANGFUSE_PUBLIC_KEY=pk-lf-...
+   LANGFUSE_SECRET_KEY=sk-lf-...
+   LANGFUSE_BASE_URL=https://cloud.langfuse.com
+   ```
+
+   Then run the CLI from a shell that has loaded that file:
 
    ```bash
-   export LANGFUSE_PUBLIC_KEY="pk-lf-..."
-   export LANGFUSE_SECRET_KEY="sk-lf-..."
-   export LANGFUSE_BASE_URL="https://cloud.langfuse.com"
-
    npx langfuse-cli api __schema
    ```
 

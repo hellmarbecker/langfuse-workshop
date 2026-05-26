@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "../src/server/load-env";
 import { LangfuseClient } from "@langfuse/client";
 import seedDataset from "../data/seed-dataset.json";
 import { env } from "../src/server/env";

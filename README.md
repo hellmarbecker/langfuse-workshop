@@ -54,6 +54,8 @@ The sample app is a small web chat where Dad opens the chat to get iPhone help. 
 
 `checkpoint/00-setup` and `checkpoint/01-base-app` intentionally contain the same untraced base app. Setup uses that state to validate keys, dependencies, and ports; Base App uses it for orientation. Tracing starts in `02-tracing`.
 
+The workshop server and npm helper scripts treat the repository `.env` as the Node-side source of truth. Local shell exports from other projects do not override `.env`, so change workshop keys, Langfuse host, prompt labels, and dataset names in that file.
+
 The workshop is small enough to finish in a sitting, and every module can also be used independently if you only care about one part of the loop.
 
 ## Repository layout
