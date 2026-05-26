@@ -34,6 +34,8 @@ Langfuse ships published templates for **User Disagreement** and **Out-of-Scope 
 - **Out-of-Scope Request** needs the system prompt, so target the final OpenAI generation.
 - **User Disagreement** needs the conversation history, so target the root `dad-it-support-chat-turn` agent observation.
 
+> Fresh project check: if Langfuse shows **No default model set** before the template picker, configure **Project Settings → LLM Connections** with your OpenAI key, then return to **Evaluators → Set up evaluator** and save a default evaluator model such as `openai / gpt-4.1`. Keep the API key in the Langfuse secret field only; do not paste it into workshop transcripts or shared notes.
+
 For **Out-of-Scope Request**:
 
 1. In Langfuse, open **Evaluators → New evaluator** and pick the **Out-of-Scope Request** template from the published library.
@@ -48,7 +50,7 @@ For **Out-of-Scope Request**:
    | `{{last_user_message}}` | `Input` | `$.messages[-1:].content` |
 
    The index `[2]` works because our chat starts with Specs' opening greeting at `[1]`, so the user's latest message lands at `[2]`. If your conversation has a different opening shape, adjust the index.
-4. Pick the judge model (e.g. `gpt-5.5-2026-04-23`) and save.
+4. Use the default judge model you configured during setup, or pick another structured-output-capable judge model, and save.
 5. Enable the evaluator.
 
 ![Variable mapping](../images/monitoring/out-of-scope.png)
@@ -67,7 +69,7 @@ For **User Disagreement**:
    | `{{last_user_message}}` | `Input` | `$.messages[-1:].content` |
 
    The agent input is the chat request from the browser, so the last message is Dad's latest message for that turn.
-4. Pick the judge model (e.g. `gpt-5.5-2026-04-23`) and save.
+4. Use the default judge model you configured during setup, or pick another structured-output-capable judge model, and save.
 5. Enable the evaluator.
 
 
