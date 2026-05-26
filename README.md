@@ -24,19 +24,21 @@ The workshop is small enough to finish in a sitting and every module is independ
 
 ## How does it work?
 
-This workshop lives in a GitHub repository. The walkthrough is split into nine modules, each with a paired guide:
+This workshop lives in a GitHub repository. `main` contains the complete reference app and the current workshop docs. Use it to inspect the finished implementation or compare your work against the end state.
+
+The exercises themselves start from checkpoint tags. Each learner chapter tells you which checkpoint to check out before making changes. The walkthrough is split into nine modules, each with a paired guide:
 
 - **Learner path** (you, if you're doing the workshop) — [`docs/learner/`](./docs/learner/). Each chapter is the build/configure guide: what to check out, what to change, what to do in the Langfuse UI.
 - **Instructor notes** (if you're running the workshop for others) — [`docs/instructor/`](./docs/instructor/). Same chapters with extra narration, demo suggestions, teaching points.
 
-Every step has a **git checkpoint** named for the lesson it kicks off. Checking out `checkpoint/03-prompt-management` puts you in the right starting state for the prompt management chapter — i.e. the code you'd have at the end of the previous chapter. That means you can start any module from scratch.
+Every workshop step has a **git checkpoint** named for the lesson it kicks off. `checkpoint/00-setup` and `checkpoint/01-base-app` are intentionally equivalent: both are the untraced base app before any Langfuse instrumentation. Setup uses that state to validate local credentials, install, and ports; Base App uses the same state for orientation. Later checkpoints then put you in the right starting state for each build chapter without losing the complete reference on `main`.
 
 
 ## Modules
 
 | Step | Branch (`git checkout …`) | What you'll learn |
 | --- | --- | --- |
-| [00 Setup](./docs/learner/00-setup.md) | *(start from main)* | Keys, install, run the app. |
+| [00 Setup](./docs/learner/00-setup.md) | `checkpoint/00-setup` *(same state as 01-base-app)* | Keys, install, run the app. |
 | [01 Base App](./docs/learner/01-base-app.md) | `checkpoint/01-base-app` | One-minute tour of the running app. Nothing to build. |
 | [02 Tracing](./docs/learner/02-tracing.md) | `checkpoint/02-tracing` | Log every step the agent takes — generations, agent root, tool spans. |
 | [03 Prompt Management](./docs/learner/03-prompt-management.md) | `checkpoint/03-prompt-management` | Move the system prompt into Langfuse so non-engineers can iterate. |
@@ -46,7 +48,7 @@ Every step has a **git checkpoint** named for the lesson it kicks off. Checking 
 | [07 Evaluation](./docs/learner/07-evaluation.md) | `checkpoint/07-evaluation` | Change one thing, rerun the dataset, compare runs side by side. |
 | [08 Wrap-up](./docs/learner/08-wrap-up.md) | `checkpoint/08-wrap-up` | What to take home, how to apply this to your own app. |
 
-Each `checkpoint/0X-…` tag is the **starting state of that lesson** — the code you'd have if you'd finished every previous module. See [`docs/checkpoints.md`](./docs/checkpoints.md) for the convention.
+Each `checkpoint/0X-…` tag is the **starting state of that lesson**. `checkpoint/00-setup` is intentionally equivalent to `checkpoint/01-base-app`; both are the base app learners use before making tracing changes. See [`docs/checkpoints.md`](./docs/checkpoints.md) for the convention.
 
 Instructor notes for the same modules live in [`docs/instructor/`](./docs/instructor/).
 

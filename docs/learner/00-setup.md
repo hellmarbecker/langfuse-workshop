@@ -2,7 +2,17 @@
 
 ## Goal
 
-Have the workshop app running locally with both OpenAI and Langfuse credentials in place. From here you go straight to `02-tracing`.
+Have the workshop app running locally with both OpenAI and Langfuse credentials in place. From here you can skim `01-base-app`, then start building in `02-tracing`.
+
+## Starting point
+
+Use the setup checkpoint for this chapter:
+
+```bash
+git checkout checkpoint/00-setup
+```
+
+This checkpoint intentionally contains the same untraced base app as `checkpoint/01-base-app`. Use it to confirm that your API keys, dependencies, and local ports work before switching to the build chapters. The Langfuse keys are configured now, but traces start only after you add instrumentation in `02-tracing`.
 
 ## Step 1 — Get the API keys
 
@@ -42,7 +52,7 @@ You should see the **Dad IT Support Agent** chat:
 - the Specs mascot up top
 - a greeting from Specs
 - suggestion chips below the greeting
-- the iPhone panel on the right ("Dad" + iPhone 11 details)
+- the iPhone panel on the right ("Dad" + iPhone 15 details)
 
 ![How Specs handles a ticket — one agent, two tools, one model, each hop an observation in the trace.](../images/specs_illustration.png)
 
@@ -55,4 +65,4 @@ You should see the **Dad IT Support Agent** chat:
 
 ## End state
 
-You are ready to start `02-tracing`.
+Your environment is ready. To build the workshop step-by-step, skim `01-base-app` if you want the app tour, then check out `checkpoint/02-tracing` for the first code changes.

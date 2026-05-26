@@ -7,8 +7,9 @@ The workshop wants two things at once:
 
 The recommended repo strategy is:
 
-- Keep one linear git history.
-- Create milestone checkouts or tags for each finished workshop step.
+- Keep `main` as the complete reference app plus current docs.
+- Keep `checkpoint/00-setup` equivalent to `checkpoint/01-base-app` for environment validation.
+- Create milestone checkouts or tags for each workshop step.
 - Make every later step runnable through explicit fallbacks.
 
 ## Canonical milestone list
@@ -25,10 +26,12 @@ The recommended repo strategy is:
 
 ## Canonical progression
 
-Each checkpoint is the finished output of the previous module and the starting point of the next one.
+`checkpoint/00-setup` is a setup checkpoint, not the finished output of an earlier build module. It should be equivalent to `checkpoint/01-base-app`: the untraced base app before any Langfuse instrumentation. Learners validate credentials, dependencies, and local ports on `00-setup`, then use the same app state for the `01-base-app` orientation.
+
+`checkpoint/02-tracing` also starts from that same base app because tracing is the first code-changing chapter. Later checkpoints represent the starting state for their lessons.
 
 - `00-setup`
-  Setup, keys, Langfuse Cloud EU, [Langfuse CLI](https://langfuse.com/docs/api-and-data-platform/features/cli), [Langfuse skill](https://github.com/langfuse/skills), and workshop framing.
+  Setup, keys, Langfuse Cloud EU, [Langfuse CLI](https://langfuse.com/docs/api-and-data-platform/features/cli), [Langfuse skill](https://github.com/langfuse/skills), and workshop framing on the same untraced app state as `01-base-app`.
 
 - `01-base-app`
   A working Dad IT Support Agent on the official OpenAI SDK, with one fixed Dad context, two local tools, and no Langfuse tracing yet.
@@ -38,6 +41,7 @@ Each checkpoint is the finished output of the previous module and the starting p
   - OpenTelemetry setup
   - `observeOpenAI(new OpenAI())`
   - `observe(...)` wrappers on the app and tool functions
+  - optional `propagateAttributes(...)` for user/session metadata, included in later checkpoints
 
   The finished tracing state is the starting point for prompt management and monitoring.
 
@@ -64,7 +68,7 @@ Each checkpoint is the finished output of the previous module and the starting p
 
 - The OpenAI SDK is already in place before tracing starts, so step 2 is only about observability.
 - Prompt management falls back to the local prompt if the Langfuse prompt is absent.
-- Monitoring depends on a stable `messages` array and root `answer` field, not on provider-specific internals.
+- Monitoring depends on stable message arrays on the agent/generation observations and the root `answer` field, not on provider-specific internals.
 - Dataset and experiment scripts reuse the same app logic as the web UI.
 
 ## Recommended jump patterns
