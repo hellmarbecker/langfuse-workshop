@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "../src/server/load-env";
 import { LangfuseClient } from "@langfuse/client";
 import { env } from "../src/server/env";
 import { SYSTEM_PROMPT } from "../src/server/support-agent";

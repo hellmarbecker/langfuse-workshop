@@ -13,7 +13,7 @@
  * Usage:
  *   npm run dataset:run
  */
-import "dotenv/config";
+import "../src/server/load-env";
 
 // --- 1. Boot the OpenTelemetry SDK so every observe(...) call inside
 //        the agent emits spans to Langfuse, exactly like the live server.
