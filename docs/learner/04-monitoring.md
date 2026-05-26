@@ -32,14 +32,26 @@ Monitoring also has a quality-tracking dimension — average score on some metri
 
 You don't need to change any code in this step. The trace shape from `02-tracing` already has everything a judge-based monitor needs: the agent observation has the full conversation and final answer, and each OpenAI generation has the system prompt plus the same message array.
 
-## Step 1 — Wire the first two monitors (Langfuse UI)
+## Step 1 — Configure the Langfuse evaluator model
+
+The monitors in this chapter use LLM-as-a-judge templates. Langfuse runs those judge calls from an **LLM Connection** inside your Langfuse project, so configure the evaluator model now, right before you use it.
+
+If your project already has a default evaluator model, keep it and continue to Step 2.
+
+1. In Langfuse, open **Project Settings → LLM Connections**.
+2. Click **Add new LLM API key**.
+3. Choose **OpenAI**, name the connection, and paste your OpenAI API key into the secret field.
+4. Save the connection.
+5. Open **Evaluators → Set up evaluator**. If Langfuse asks for the default model first, choose the OpenAI connection and a structured-output-capable model such as `openai / gpt-4.1`, then save.
+
+Keep the API key in the Langfuse secret field only. Do not paste it into workshop transcripts or shared notes.
+
+## Step 2 — Wire the first two monitors (Langfuse UI)
 
 Langfuse ships published templates for **User Disagreement** and **Out-of-Scope Request**. Both are LLM-as-a-judge evaluators that read variables from observations. The two templates need slightly different targets:
 
 - **Out-of-Scope Request** needs the system prompt, so target the final OpenAI generation.
 - **User Disagreement** needs the conversation history, so target the root `dad-it-support-chat-turn` agent observation.
-
-> Fresh project check: if Langfuse shows **No default model set** before the template picker, configure **Project Settings → LLM Connections** with your OpenAI key, then return to **Evaluators → Set up evaluator** and save a default evaluator model such as `openai / gpt-4.1`. Keep the API key in the Langfuse secret field only; do not paste it into workshop transcripts or shared notes.
 
 For **Out-of-Scope Request**:
 
@@ -55,7 +67,7 @@ For **Out-of-Scope Request**:
    | `{{last_user_message}}` | `Input` | `$.messages[-1:].content` |
 
    The `[-1:]` slice reads the final message in the generation input, so the mapping keeps working as the conversation grows. If your trace has a different message shape, inspect the generation input and adjust the JsonPath.
-4. Use the default judge model you configured during setup, or pick another structured-output-capable judge model, and save.
+4. Use the default judge model you configured in Step 1, or pick another structured-output-capable judge model, and save.
 5. Enable the evaluator.
 
 ![Variable mapping](../images/monitoring/out-of-scope.png)
@@ -74,7 +86,7 @@ For **User Disagreement**:
    | `{{last_user_message}}` | `Input` | `$.messages[-1:].content` |
 
    The agent input is the chat request from the browser, so the last message is Dad's latest message for that turn.
-4. Use the default judge model you configured during setup, or pick another structured-output-capable judge model, and save.
+4. Use the default judge model you configured in Step 1, or pick another structured-output-capable judge model, and save.
 5. Enable the evaluator.
 
 

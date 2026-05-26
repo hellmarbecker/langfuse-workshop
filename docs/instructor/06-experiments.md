@@ -11,7 +11,7 @@ Learner guide: [06 Experiments](../learner/06-experiments.md)
 
 - The key idea is reuse: the experiment runner calls the same `runSupportConversation(...)` as the web app.
 - Contrast deterministic scoring (`keyword_overlap`) with LLM-as-a-judge scoring (`correctness`).
-- Confirm the default evaluator model before the Correctness setup. If learners skipped setup, send them to **Project Settings → LLM Connections** first.
+- Confirm the default evaluator model before the Correctness setup. If learners did not configure it in session 4, send them to **Project Settings → LLM Connections** first.
 - Keep concurrency at one for workshops so traces and console output are easy to follow.
 
 ## Demo rhythm
