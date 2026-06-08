@@ -19,7 +19,7 @@ Learner guide: [06 Experiments](../learner/06-experiments.md)
 
 1. Skim the numbered sections in `scripts/run-dataset.ts`.
 2. Configure the `keyword_overlap` code evaluator for experiment observations.
-3. Configure the Correctness evaluator for the same experiment observations.
+3. Configure the Correctness evaluator as a dataset-run evaluator.
 4. Run `npm run dataset:run`.
 5. Open the run table, per-item traces, and chart view.
 
@@ -27,6 +27,7 @@ Learner guide: [06 Experiments](../learner/06-experiments.md)
 
 - Code evaluator target. It should point at the root `dad-it-support-chat-turn` agent observation, not the intermediate tool or model-call observations.
 - Learners testing against the wrong observation shape. The workshop snippet tolerates a plain-string `output`, but the intended setup is still the root agent observation where the answer lives at `output.answer`.
-- Correctness evaluator mapping. `query` comes from the observation input, `generation` from `$.answer`, and `ground_truth` from `$.idealAnswer`.
+- Correctness evaluator target. Keep it on **Dataset runs** if you want the score to show up on the run rows and in run comparison.
+- Correctness evaluator mapping. `query` comes from the experiment input, `generation` from the run `Output`, and `ground_truth` from `$.idealAnswer` in expected output.
 - "No default model set" means Langfuse needs an LLM connection/default evaluator model; it is not fixed by editing `.env`.
 - Slow asynchronous evaluator results; refresh after the run finishes.

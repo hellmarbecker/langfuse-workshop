@@ -176,26 +176,26 @@ The snippet also falls back to `output` itself when it is a plain string. That m
 
 ## Step 3 — Set up the `correctness` evaluator in Langfuse
 
-Langfuse ships a **Correctness** LLM-as-a-judge template that compares an actual answer to an ideal answer and returns a score. We wire it up against the same experiment observations so every item gets both a deterministic platform score and a model-judged correctness score.
+Langfuse ships a **Correctness** LLM-as-a-judge template that compares an actual answer to an ideal answer and returns a score. We wire it up against the dataset runs themselves so every item gets both a deterministic platform score and a model-judged correctness score that shows up in the run comparison view.
 
 > Fresh project check: Correctness is an LLM-as-a-judge evaluator. If you did not configure the default evaluator model in session 4, do it now: open **Project Settings → LLM Connections**, add your OpenAI key, then return to **Evaluators → Set up evaluator** and save a default evaluator model such as `openai / gpt-4.1`. Keep the API key in the Langfuse secret field only; do not paste it into workshop transcripts or shared notes.
 
 1. In Langfuse, open **Evaluators → New evaluator** and pick the **Correctness** template.
-2. Target the same experiment observations:
-   - Target: **Experiments**
+2. Target the runs from this dataset:
    - Dataset: `dad-it-support-workshop`
-   - Observation type: `agent`
-   - Observation name: `dad-it-support-chat-turn`
+   - Scope: **Dataset runs**
 3. Map the template variables:
 
    | Template variable | Object field | JsonPath |
    | --- | --- | --- |
-   | `query` | Observation Input | `$.messages[-1:].content` |
-   | `generation` | Observation Output | `$.answer` |
+   | `query` | Experiment Input | `$.messages[-1:].content` |
+   | `generation` | Experiment Output | Use **Output** directly |
    | `ground_truth` | Experiment Expected Output | `$.idealAnswer` |
 
 4. Use the default judge model you configured in session 4 or in the fresh project check above, or pick another structured-output-capable judge model, and save.
 5. Enable the evaluator.
+
+Why not target the root `agent` observation here? Because for this workshop we want `correctness` to appear on the dataset run items and in the run comparison view. Targeting **Dataset runs** keeps the score attached to the experiment rows rather than only to an underlying observation.
 
 ![Correctness Variable Mapping](../images/experiments/correctness-variable-mapping.png)
 
