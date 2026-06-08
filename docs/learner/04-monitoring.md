@@ -107,41 +107,8 @@ Code evaluators are a good fit for that pattern: no model call, no prompt design
 4. Paste this code:
 
 ```ts
-type EvaluationContext = {
-  observation: {
-    input: any;
-    output: any;
-    metadata: any;
-  };
-  experiment:
-    | {
-        itemExpectedOutput: any;
-        itemMetadata: any;
-      }
-    | undefined;
-};
-
-type ScoreBase = {
-  name: string;
-  comment?: string;
-  configId?: string | null;
-  metadata?: Record<string, unknown>;
-};
-
-type NumericScore = ScoreBase & { dataType: "NUMERIC"; value: number };
-type BooleanScore = ScoreBase & { dataType: "BOOLEAN"; value: boolean };
-type CategoricalScore = ScoreBase & { dataType: "CATEGORICAL"; value: string };
-type TextScore = ScoreBase & { dataType: "TEXT"; value: string };
-
-type Score = NumericScore | BooleanScore | CategoricalScore | TextScore;
-
-type EvaluationResult = {
-  scores: Score[];
-};
-
-function evaluate({
-  observation: { input },
-}: EvaluationContext): EvaluationResult {
+function evaluate(ctx) {
+  const input = ctx.observation?.input;
   const text =
     typeof input === "string"
       ? input
@@ -190,6 +157,8 @@ function evaluate({
 Why this target? The root agent observation input is the chat request from the browser, so the evaluator can inspect Dad's latest user message before any tool calls or follow-up generations complicate the shape.
 
 This evaluator does **not** need the Langfuse evaluator model from Step 1, because it is pure TypeScript running inside Langfuse rather than an LLM judge.
+
+If the Langfuse editor is picky about the longer typed examples from the docs, prefer this minimal version. It uses the same `ctx.observation.input` contract, just with less TypeScript ceremony.
 
 ## Verify
 
