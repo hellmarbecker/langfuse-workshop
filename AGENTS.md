@@ -41,8 +41,8 @@ Canonical progression:
 - `03-prompt-management`: learners replace the code-only prompt path with a Langfuse-managed prompt plus local fallback.
 - `04-monitoring`: starts from the traced app and stable message-array trace shape; this step is mostly evaluator design, variable mapping, and Langfuse UI setup.
 - `05-dataset`: adds a starter dataset that matches the app scope and uses message-array inputs plus expected outputs.
-- `06-experiments`: runs the app against the Langfuse dataset with the SDK experiment runner and one simple evaluator.
-- `07-evaluation`: changes the prompt, reruns the same dataset, and compares runs side by side.
+- `06-experiments`: runs the app against the Langfuse dataset with the SDK experiment runner, a Langfuse code evaluator for deterministic `keyword_overlap`, and a Langfuse Correctness evaluator.
+- `07-evaluation`: changes the prompt, reruns the same dataset, and compares the same platform-side evaluators side by side.
 - `08-wrap-up`: recaps the mental model and points to next steps.
 
 What makes the checkpoints stitchable:
@@ -50,7 +50,8 @@ What makes the checkpoints stitchable:
 - The OpenAI SDK is already in place before tracing starts, so step 2 is only about observability.
 - Prompt management falls back to the local prompt if the Langfuse prompt is absent.
 - Monitoring depends on stable message arrays on the agent/generation observations and the root `answer` field, not provider-specific internals.
-- Dataset and experiment scripts reuse the same app logic as the web UI.
+- Dataset items carry both `idealAnswer` and `expectedKeywords`, which feed the platform-side evaluators in steps 06 and 07.
+- Dataset and experiment scripts reuse the same app logic as the web UI, while evaluators run in Langfuse against the resulting experiment observations.
 
 Recommended jump patterns:
 
