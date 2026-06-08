@@ -11,7 +11,7 @@ description: "Change one prompt rule, rerun the same dataset, and compare Langfu
 git checkout checkpoint/07-evaluation
 ```
 
-Your app is traced, monitored, has a hosted dataset, and at least one experiment run with both `keyword_overlap` and `correctness` scores coming from Langfuse evaluators. Now you make a change to the app and rerun the experiment to see whether it helped or hurt.
+Your app is traced, monitored, has a hosted dataset, and at least one experiment run with both `keyword_overlap` and `correctness` scores. Now you make a change to the app and rerun the experiment to see whether it helped or hurt.
 
 Look at your first experiment run before making changes. Open the dataset → **Runs** tab and check the averages:
 
@@ -82,7 +82,7 @@ Either way you end up with a new prompt version, and the next `runSupportConvers
 npm run dataset:run
 ```
 
-You now have two runs under the same dataset, each linked to a different prompt version. The same `keyword_overlap` code evaluator and `correctness` evaluator from step 06 score the new run automatically.
+You now have two runs under the same dataset, each linked to a different prompt version. The same `keyword_overlap` script evaluator and `correctness` evaluator from step 06 score the new run automatically.
 
 ## Step 3 — Compare
 
