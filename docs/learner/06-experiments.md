@@ -119,13 +119,18 @@ type EvaluationResult = {
   scores: Score[];
 };
 
-function evaluate(ctx: EvaluationContext): EvaluationResult {
+function evaluate({
+  observation: { output },
+  experiment,
+}: EvaluationContext): EvaluationResult {
   const answer =
-    typeof ctx.observation.output?.answer === "string"
-      ? ctx.observation.output.answer
-      : "";
+    typeof output?.answer === "string"
+      ? output.answer
+      : typeof output === "string"
+        ? output
+        : "";
 
-  const rawKeywords = ctx.experiment?.itemExpectedOutput?.expectedKeywords;
+  const rawKeywords = experiment?.itemExpectedOutput?.expectedKeywords;
   const expectedKeywords = Array.isArray(rawKeywords)
     ? rawKeywords.map((keyword) => String(keyword))
     : [];
@@ -163,7 +168,9 @@ function evaluate(ctx: EvaluationContext): EvaluationResult {
    - Observation name: `dad-it-support-chat-turn`
 6. Save the evaluator and enable it.
 
-Why this target? The root agent observation is the easiest place to evaluate the final answer because its output is the structured `ChatResponse` object from the app, so `ctx.observation.output.answer` is the exact answer Dad saw.
+Why this target? The root agent observation is the easiest place to evaluate the final answer because its output is the structured `ChatResponse` object from the app, so `output.answer` is the exact answer Dad saw.
+
+The snippet also falls back to `output` itself when it is a plain string. That makes the evaluator a little more forgiving during setup and testing, but the intended target for this workshop is still the root `agent` observation, not the intermediate model or tool observations.
 
 > If the **Test** panel needs a sample and you do not have an experiment run yet, save the evaluator first, finish Step 4 once, then come back and run the test against one of the new `dad-it-support-chat-turn` observations. That's the fastest way to confirm the shape of `ctx.observation.output` and `ctx.experiment.itemExpectedOutput`.
 

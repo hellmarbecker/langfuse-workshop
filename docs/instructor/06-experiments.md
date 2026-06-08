@@ -26,6 +26,7 @@ Learner guide: [06 Experiments](../learner/06-experiments.md)
 ## Watch for
 
 - Code evaluator target. It should point at the root `dad-it-support-chat-turn` agent observation, not the intermediate tool or model-call observations.
+- Learners testing against the wrong observation shape. The workshop snippet tolerates a plain-string `output`, but the intended setup is still the root agent observation where the answer lives at `output.answer`.
 - Correctness evaluator mapping. `query` comes from the observation input, `generation` from `$.answer`, and `ground_truth` from `$.idealAnswer`.
 - "No default model set" means Langfuse needs an LLM connection/default evaluator model; it is not fixed by editing `.env`.
 - Slow asynchronous evaluator results; refresh after the run finishes.
