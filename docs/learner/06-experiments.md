@@ -125,7 +125,7 @@ Why target **Dataset runs** here? Because for this workshop we want `correctness
 npm run dataset:run
 ```
 
-Watch progress per item in the console; it finishes with a summary line.
+The script finishes by printing a formatted run summary in the console. Item-level traces and scores show up in Langfuse as the run executes, and the Correctness evaluator may continue filling in scores for a short time afterward because it runs asynchronously.
 
 The script attaches `keyword_overlap` itself. The Correctness evaluator you set up in Step 3 runs asynchronously in Langfuse over the new run rows shortly after.
 

@@ -13,7 +13,7 @@ Learner guide: [06 Experiments](../learner/06-experiments.md)
 - Contrast deterministic scoring in the script (`keyword_overlap`) with LLM-as-a-judge scoring (`correctness`).
 - Confirm the default evaluator model before the Correctness setup. If learners did not configure it in session 4, send them to **Project Settings → LLM Connections** first.
 - Emphasize the mixed setup: the script owns the cheap deterministic check, while Langfuse owns the semantic judge.
-- Keep concurrency at one for workshops so traces and console output are easy to follow.
+- Keep concurrency at one for workshops so traces and the final run summary are easy to follow.
 
 ## Demo rhythm
 
@@ -29,4 +29,4 @@ Learner guide: [06 Experiments](../learner/06-experiments.md)
 - Correctness evaluator mapping. `query` comes from the experiment input, `generation` from the run `Output`, and `ground_truth` from `$.idealAnswer` in expected output.
 - Learners assuming the deterministic check must live in Langfuse now. It does not; mention the code-evaluator docs only as an alternative.
 - "No default model set" means Langfuse needs an LLM connection/default evaluator model; it is not fixed by editing `.env`.
-- Slow asynchronous evaluator results; refresh after the run finishes.
+- Slow asynchronous evaluator results; the console only shows the final summary, so refresh Langfuse after the run finishes if `correctness` is still pending.
