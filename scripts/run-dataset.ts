@@ -6,9 +6,9 @@
  *   2. Roll the per-item traces into one experiment run row.
  *   3. Attach a deterministic keyword_overlap score per item.
  *
- * Additional scores (e.g. the Correctness LLM-as-a-judge configured
- * in the Langfuse UI from step 06) run asynchronously over the run
- * rows after this script finishes.
+ * Additional scores (for example the Correctness LLM-as-a-judge
+ * evaluator configured in Langfuse) run asynchronously over the
+ * dataset runs after this script finishes.
  *
  * Usage:
  *   npm run dataset:run
