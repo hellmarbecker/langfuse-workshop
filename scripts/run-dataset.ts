@@ -93,7 +93,7 @@ async function main() {
     runName,
     description: "Workshop dataset run for the Dad IT Support Agent",
     metadata: {
-      model: env.openaiModel
+      model: env.anthropicModel
     },
     maxConcurrency: 1,
     // `task` runs the agent on one dataset item. The return value

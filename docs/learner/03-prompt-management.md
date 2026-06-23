@@ -33,7 +33,7 @@ Learn more in the [Langfuse prompts docs](https://langfuse.com/docs/prompt-manag
 Two steps:
 
 1. **Publish the system prompt to Langfuse** so a versioned copy lives there.
-2. **Fetch it back at request time**, and link each OpenAI generation to the version that produced it.
+2. **Fetch it back at request time**, and link each Claude generation to the version that produced it.
 
 ## Step 1 — Publish the prompt (Langfuse UI)
 
@@ -80,20 +80,44 @@ const langfusePrompt = await getPrompt();
 const systemPrompt = langfusePrompt?.prompt ?? SYSTEM_PROMPT;
 ```
 
-**Pass `langfusePrompt` to the existing `observeOpenAI` call** so the generation gets linked to the published prompt version — only when we actually have one:
+**Use `systemPrompt` in the Messages API call.** In the base app the call passed the local `SYSTEM_PROMPT` constant — switch it to the fetched value:
 
 ```ts
-const openai = observeOpenAI(
-  new OpenAI({ apiKey: env.openaiApiKey }),
-  langfusePrompt ? { langfusePrompt } : undefined
+const response = await anthropic.messages.create({
+  model: env.anthropicModel,
+  max_tokens: 1024,
+  system: systemPrompt,
+  tools: TOOL_DEFINITIONS,
+  messages: transcript
+});
+```
+
+**Link the generation to the prompt version.** The generation observation you opened in `02-tracing` accepts a `prompt` attribute — add it, only when we actually fetched a managed prompt, so the generation carries the **Prompt** badge:
+
+```ts
+const generation = startObservation(
+  "dad-it-support-generation",
+  {
+    model: env.anthropicModel,
+    input: { system: systemPrompt, messages: transcript },
+    modelParameters: { max_tokens: 1024 },
+    prompt: langfusePrompt
+      ? {
+          name: langfusePrompt.name,
+          version: langfusePrompt.version,
+          isFallback: langfusePrompt.isFallback
+        }
+      : undefined
+  },
+  { asType: "generation" }
 );
 ```
 
 Three things to notice:
 
-- The `observeOpenAI(new OpenAI(...))` call itself didn't change — same inline wrap from step 02. We just added a conditional second argument carrying the `langfusePrompt`.
-- The local `SYSTEM_PROMPT` constant stays in the file as the fallback. If Langfuse is misconfigured or the prompt isn't published yet, the chat keeps working — it just won't carry the Prompt badge on that turn.
-- Passing `langfusePrompt` into `observeOpenAI` is what makes every generation under that client carry the **Prompt** badge linking back to the exact published version.
+- The OpenAI SDK's `observeOpenAI` wrapper took a `langfusePrompt` option that linked the prompt for you. The Anthropic SDK has no such wrapper, so we link it ourselves by passing the `prompt` attribute (name + version + `isFallback`) to the generation observation.
+- The local `SYSTEM_PROMPT` constant stays in the file as the fallback. If Langfuse is misconfigured or the prompt isn't published yet, `getPrompt()` returns `null`, `systemPrompt` falls back to the constant, and the `prompt` attribute is omitted — the chat keeps working, it just won't carry the Prompt badge on that turn.
+- The `prompt` attribute is what makes every generation carry the **Prompt** badge linking back to the exact published version.
 
 ## Verify
 
@@ -103,10 +127,10 @@ npm run dev
 
 Ask one question, then in Langfuse:
 
-- Open the trace, click the OpenAI generation. It should show a **Prompt** badge linking to `dad-it-support-agent` at the version you published.
+- Open the trace, click the `dad-it-support-generation` generation. It should show a **Prompt** badge linking to `dad-it-support-agent` at the version you published.
 - In the Prompts view for `dad-it-support-agent`, scroll to "Used in" and your trace appears.
 
-![A traced openai-chat-completion with the Prompt badge in the top-right linking back to dad-it-support-agent · v1.](../images/prompt-management/03-prompt-management-prompt-badge.png)
+![A traced dad-it-support-generation with the Prompt badge in the top-right linking back to dad-it-support-agent · v1.](../images/prompt-management/03-prompt-management-prompt-badge.png)
 
 ## Wrap-up
 

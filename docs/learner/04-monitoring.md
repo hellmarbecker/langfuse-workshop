@@ -31,7 +31,7 @@ Monitoring also has a quality-tracking dimension — average score on some metri
 
 
 
-You don't need to change any code in this step. The trace shape from `02-tracing` already has everything these monitors need: the agent observation has the full conversation and final answer, and each OpenAI generation has the system prompt plus the same message array.
+You don't need to change any code in this step. The trace shape from `02-tracing` already has everything these monitors need: the agent observation has the full conversation and final answer, and each Claude generation has the system prompt plus the same message array.
 
 ## Step 1 — Configure the Langfuse evaluator model
 
@@ -41,9 +41,9 @@ If your project already has a default evaluator model, keep it and continue to S
 
 1. In Langfuse, open **Project Settings → LLM Connections**.
 2. Click **Add new LLM API key**.
-3. Choose **OpenAI**, name the connection, and paste your OpenAI API key into the secret field.
+3. Choose **Anthropic**, name the connection, and paste your Anthropic API key into the secret field.
 4. Save the connection.
-5. Open **Evaluators → Set up evaluator**. If Langfuse asks for the default model first, choose the OpenAI connection and a structured-output-capable model such as `openai / gpt-4.1`, then save.
+5. Open **Evaluators → Set up evaluator**. If Langfuse asks for the default model first, choose the Anthropic connection and a structured-output-capable model such as `anthropic / claude-sonnet-4-6`, then save.
 
 Keep the API key in the Langfuse secret field only. Do not paste it into workshop transcripts or shared notes.
 
@@ -51,20 +51,20 @@ Keep the API key in the Langfuse secret field only. Do not paste it into worksho
 
 Langfuse ships published templates for **User Disagreement** and **Out-of-Scope Request**. Both are LLM-as-a-judge evaluators that read variables from observations. The two templates need slightly different targets:
 
-- **Out-of-Scope Request** needs the system prompt, so target the final OpenAI generation.
+- **Out-of-Scope Request** needs the system prompt, so target the final Claude generation.
 - **User Disagreement** needs the conversation history, so target the root `dad-it-support-chat-turn` agent observation.
 
 For **Out-of-Scope Request**:
 
 1. In Langfuse, open **Evaluators → New evaluator** and pick the **Out-of-Scope Request** template from the published library.
-2. Target the final OpenAI generation:
+2. Target the final Claude generation:
    - Observation type: `generation`
    - Tool Call count = 0 (to exclude tool decisions)
 3. Map the template's variables from the generation's **Input**:
 
    | Template variable | Object field | JsonPath |
    | --- | --- | --- |
-   | `{{system_prompt}}` | `Input` | `$.messages[0].content` |
+   | `{{system_prompt}}` | `Input` | `$.system` |
    | `{{last_user_message}}` | `Input` | `$.messages[-1:].content` |
 
    The `[-1:]` slice reads the final message in the generation input, so the mapping keeps working as the conversation grows. If your trace has a different message shape, inspect the generation input and adjust the JsonPath.

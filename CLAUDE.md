@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A hands-on Langfuse workshop built around a small full-stack TypeScript app, the **Dad IT Support Agent** ("Specs"). The app is a vehicle for teaching the AI engineering loop: tracing → prompt management → monitoring → datasets → experiments → evaluation. `main` holds the complete reference implementation; each workshop step also lives at a `checkpoint/0X-*` git tag that learners check out and build forward from.
+A hands-on Langfuse workshop built around a small full-stack TypeScript app, the **Dad IT Support Agent** ("Specs"), running on the Anthropic Messages API (Claude). The app is a vehicle for teaching the AI engineering loop: tracing → prompt management → monitoring → datasets → experiments → evaluation. `main` holds the complete reference implementation; each workshop step also lives at a `checkpoint/0X-*` git tag that learners check out and build forward from.
 
 See `AGENTS.md` for the checkpoint strategy and the rule that **code/doc changes on `main` must be mirrored into any affected `checkpoint/*` tags** before a task is done.
 
@@ -27,7 +27,7 @@ There is no linter and no test runner; `npm run typecheck` is the only static ch
 
 ## Environment
 
-Every Node entrypoint imports `src/server/load-env.ts` (or `scripts/load-env`) **first**. It loads the repo-root `.env` with `override: true`, so the workshop `.env` is the single source of truth and beats any shell exports from other projects. Copy `.env.example` to `.env`. `src/server/env.ts` is the typed accessor for all config (OpenAI key/model, Langfuse keys/host, prompt name+label, dataset name); read config from `env`, never `process.env` directly.
+Every Node entrypoint imports `src/server/load-env.ts` (or `scripts/load-env`) **first**. It loads the repo-root `.env` with `override: true`, so the workshop `.env` is the single source of truth and beats any shell exports from other projects. Copy `.env.example` to `.env`. `src/server/env.ts` is the typed accessor for all config (`ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` — default `claude-opus-4-8`, Langfuse keys/host, prompt name+label, dataset name); read config from `env`, never `process.env` directly.
 
 The app degrades gracefully without Langfuse: missing credentials disable tracing (`isLangfuseConfigured()`), and a missing published prompt falls back to the local `SYSTEM_PROMPT`.
 
@@ -35,12 +35,12 @@ The app degrades gracefully without Langfuse: missing credentials disable tracin
 
 **Client/server split.** React + Vite client in `src/client/` calls an Express server in `src/server/`. In dev, Vite proxies `/api/*` to the server on port 8787. In production the server serves the built client from `dist/` and handles `/api`. Shared request/response types live in `src/shared/types.ts`.
 
-**The agent loop** (`src/server/support-agent.ts`) is the core. `runSupportConversation` is the exported, traced entrypoint. It runs a standard OpenAI tool-calling loop (max 6 turns): seed transcript with system prompt + user messages, call `chat.completions.create` with `TOOL_DEFINITIONS`, execute any tool calls, append results, repeat until the model returns a final text answer. The two local tools (`get_support_context`, `search_help_library`) are defined and dispatched in `src/server/tools.ts` and read from the static fixtures in `src/server/support-data.ts` — there is no database or external data source.
+**The agent loop** (`src/server/support-agent.ts`) is the core. `runSupportConversation` is the exported, traced entrypoint. It runs a standard Anthropic Messages API tool-calling loop (max 6 turns): build the transcript from user messages, call `anthropic.messages.create` with the top-level `system` prompt and `TOOL_DEFINITIONS`, execute any `tool_use` blocks, append a `tool_result` user message, repeat until the model returns text with no tool calls. The two local tools (`get_support_context`, `search_help_library`) are defined (Anthropic `{name, description, input_schema}` shape) and dispatched in `src/server/tools.ts` and read from the static fixtures in `src/server/support-data.ts` — there is no database or external data source.
 
 **Langfuse tracing** is layered on without changing app logic, which is the whole point of the workshop progression:
 - `src/server/index.ts` boots an OpenTelemetry `NodeSDK` with `LangfuseSpanProcessor` at startup and `forceFlush()`es on shutdown. Any script that needs traces (e.g. `run-dataset.ts`) does the same boot.
 - `observe(fn, { name, asType })` wraps app/tool functions to emit spans (`asType: "agent"` for the conversation, `"tool"` for each tool).
-- `observeOpenAI(new OpenAI(...))` auto-traces generations; passing `{ langfusePrompt }` links generations to the managed prompt.
+- The Anthropic SDK has **no** Langfuse auto-instrumentation wrapper (there is no `observeOpenAI` equivalent), so each `messages.create` call is wrapped by hand in a generation observation: `startObservation("dad-it-support-generation", { model, input: { system, messages }, modelParameters, prompt }, { asType: "generation" })` → `.update({ output, usageDetails })` → `.end()`. The optional `prompt` attribute (`{ name, version, isFallback }`) links the generation to the Langfuse-managed prompt.
 - `propagateAttributes({ userId, sessionId, traceName, tags }, fn)` attaches user/session metadata to the trace tree.
 
 **Prompt management.** `SYSTEM_PROMPT` is defined in `support-agent.ts` and is the local fallback. `scripts/publish-prompt.ts` pushes that same string (or the `gentler` variant, selected by `WORKSHOP_PROMPT_VARIANT`) to Langfuse under `LANGFUSE_PROMPT_NAME`/`LANGFUSE_PROMPT_LABEL`. At runtime the agent prefers the fetched Langfuse prompt and falls back to the local constant.
@@ -50,5 +50,5 @@ The app degrades gracefully without Langfuse: missing credentials disable tracin
 ## Conventions
 
 - ESM throughout (`"type": "module"`), `moduleResolution: "Bundler"`, strict TS. Scripts are run with `tsx`, not compiled.
-- The trace shape is a contract for the workshop: monitoring/evaluation depend on stable message-array inputs on the agent/generation observations and the root `answer` field. Don't reshape these casually — it breaks later lessons and the checkpoint tags.
+- The trace shape is a contract for the workshop: monitoring/evaluation depend on the generation observation's `input` being `{ system, messages }` (the monitoring evaluators map `{{system_prompt}}` to `$.system`) and on the root `answer` field. Don't reshape these casually — it breaks later lessons and the checkpoint tags.
 - Workshop content lives in `docs/learner/` (self-guided lessons) and `docs/instructor/` (facilitator notes), paired per module 00–08. Per `AGENTS.md`, keep learner content out of instructor notes and don't recreate index/overview files.
