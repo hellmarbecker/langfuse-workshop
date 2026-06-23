@@ -45,7 +45,7 @@ Open `scripts/run-dataset.ts`. The file is annotated with numbered comments (`//
 - Uses `dataset.runExperiment(...)` to roll all per-item traces into a single run row.
 - Attaches a `keyword_overlap` score per item by comparing `expectedKeywords` against the agent's answer.
 
-The traces produced are the same shape as production traces — same `dad-it-support-chat-turn` root, same OpenAI generation, same tool spans. We do not need extra UI setup for the deterministic score because it already lives in the script.
+The traces produced are the same shape as production traces — same `dad-it-support-chat-turn` root, same Claude generation, same tool spans. We do not need extra UI setup for the deterministic score because it already lives in the script.
 
 ### `dataset.runExperiment(...)` — the moving parts
 
@@ -56,7 +56,7 @@ await dataset.runExperiment({
   name: "Dad IT Support Agent experiment",
   runName,           // unique label for this run; shows up in the Runs tab
   description: "...",
-  metadata: { model: env.openaiModel },
+  metadata: { model: env.anthropicModel },
   maxConcurrency: 1, // run items one at a time
 
   task: async (item) => {
@@ -98,7 +98,7 @@ This is also a good default pattern for teams that want experiment logic to stay
 
 Langfuse ships a **Correctness** LLM-as-a-judge template that compares an actual answer to an ideal answer and returns a score. We wire it up against the dataset runs so every item gets both the local deterministic score and a model-judged correctness score that shows up in the run comparison view.
 
-> Fresh project check: Correctness is an LLM-as-a-judge evaluator. If you did not configure the default evaluator model in session 4, do it now: open **Project Settings → LLM Connections**, add your OpenAI key, then return to **Evaluators → Set up evaluator** and save a default evaluator model such as `openai / gpt-4.1`. Keep the API key in the Langfuse secret field only; do not paste it into workshop transcripts or shared notes.
+> Fresh project check: Correctness is an LLM-as-a-judge evaluator. If you did not configure the default evaluator model in session 4, do it now: open **Project Settings → LLM Connections**, add your Anthropic key, then return to **Evaluators → Set up evaluator** and save a default evaluator model such as `anthropic / claude-sonnet-4-6`. Keep the API key in the Langfuse secret field only; do not paste it into workshop transcripts or shared notes.
 >
 > ⚠️ Scope must be **Dataset runs**, not **Observations**. The default UI selection is **Observations**. That targets live production traces and will never fire on experiment results. Select **Dataset runs** before configuring anything else.
 

@@ -1,13 +1,13 @@
 ---
 title: "Workshop: Setup"
-description: "Set up the workshop app with OpenAI and Langfuse credentials, then verify the local Dad IT Support Agent."
+description: "Set up the workshop app with Anthropic and Langfuse credentials, then verify the local Dad IT Support Agent."
 ---
 
 # 00 Setup
 
 ## Goal
 
-Have the workshop app running locally with both OpenAI and Langfuse credentials in place. From here you can skim `01-base-app`, then start building in `02-tracing`.
+Have the workshop app running locally with both Anthropic and Langfuse credentials in place. From here you can skim `01-base-app`, then start building in `02-tracing`.
 
 ## Starting point
 
@@ -23,7 +23,7 @@ This checkpoint intentionally contains the same untraced base app as `checkpoint
 
 ## Step 1 — Get the API keys
 
-1. **OpenAI** — [platform.openai.com](https://platform.openai.com) → API Keys → create one. Copy the `sk-...` value.
+1. **Anthropic** — [console.anthropic.com](https://console.anthropic.com) → API Keys → create one. Copy the `sk-ant-...` value.
 2. **Langfuse** — sign up at [langfuse.com](https://langfuse.com) on the **EU region**, create a project, and copy the public + secret keys from **Settings → API Keys**.
 
 ## Step 2 — Configure `.env`
@@ -35,7 +35,7 @@ cp .env.example .env
 Fill in:
 
 ```bash
-OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_BASE_URL=https://cloud.langfuse.com
@@ -43,7 +43,7 @@ LANGFUSE_BASE_URL=https://cloud.langfuse.com
 
 Leave the rest of the defaults as they are.
 
-The workshop app always loads this repository's `.env` file for the server and helper scripts. If you have `LANGFUSE_*`, `OPENAI_*`, or `DATASET_NAME` values exported in your shell from another project, they will not override this file. To change the workshop configuration, edit `.env`.
+The workshop app always loads this repository's `.env` file for the server and helper scripts. If you have `LANGFUSE_*`, `ANTHROPIC_*`, or `DATASET_NAME` values exported in your shell from another project, they will not override this file. To change the workshop configuration, edit `.env`.
 
 Keep these values in your local `.env` only. Do not paste real API keys into shared workshop notes, transcripts, screenshots, or chat messages.
 

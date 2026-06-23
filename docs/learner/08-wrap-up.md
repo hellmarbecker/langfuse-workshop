@@ -67,7 +67,7 @@ When you go back to your own codebase, do this in order:
 
 2. **Install the [Langfuse skill](https://github.com/langfuse/skills)** (`/langfuse`) — it packages the recommended tracing, prompt management, monitoring, and evaluator patterns from this workshop and applies them to your codebase without you hand-rolling each piece.
 
-3. **Pick the smallest LLM-using surface** you have and wire `observe(...)` + `observeOpenAI(...)` first. Get one trace before you do anything else.
+3. **Pick the smallest LLM-using surface** you have and wire `observe(...)` + a generation observation (`startObservation(..., { asType: "generation" })`) first. Get one trace before you do anything else.
 
 4. **Add user/session information** only once you have at least two users or two sessions of traffic — there's no point until then.
 

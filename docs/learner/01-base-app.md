@@ -1,6 +1,6 @@
 ---
 title: "Workshop: Dad IT Support Agent Base App"
-description: "Tour the TypeScript support agent before instrumentation: chat UI, Express API, OpenAI tool loop, local tools, and support data."
+description: "Tour the TypeScript support agent before instrumentation: chat UI, Express API, Anthropic tool loop, local tools, and support data."
 ---
 
 # 01 Base App
@@ -10,7 +10,7 @@ description: "Tour the TypeScript support agent before instrumentation: chat UI,
 ## What the running app does
 
 - Dad himself is the user. Specs (the agent) talks directly to him about his iPhone.
-- One OpenAI tool-calling loop. Two local tools (`get_support_context`, `search_help_library`).
+- One Anthropic Messages API tool-calling loop. Two local tools (`get_support_context`, `search_help_library`).
 - The system prompt is rendered locally from `src/server/support-agent.ts`. No Langfuse yet.
 
 ![How Specs handles a ticket — one agent, two tools, one model, each hop an observation in the trace.](../images/specs_illustration.png)
