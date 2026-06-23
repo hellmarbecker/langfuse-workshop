@@ -11,7 +11,7 @@ Learner guide: [01 Base App](../learner/01-base-app.md)
 
 - This is a quick orientation chapter. There is intentionally nothing to build.
 - Point at the three boundaries learners will instrument later: Express route, agent loop, local tools.
-- Stress that the base checkpoint uses the official OpenAI SDK and local tool functions only.
+- Stress that the base checkpoint uses the official Anthropic SDK and local tool functions only.
 
 ## Watch for
 
