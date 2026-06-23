@@ -17,14 +17,13 @@
     "dataset:run": "tsx scripts/run-dataset.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "latest",
     "@langfuse/client": "latest",
-    "@langfuse/openai": "latest",
     "@langfuse/otel": "latest",
     "@langfuse/tracing": "latest",
     "@opentelemetry/sdk-node": "^0.218.0",
     "dotenv": "latest",
     "express": "latest",
-    "openai": "latest",
     "react": "latest",
     "react-dom": "latest",
     "react-markdown": "latest",

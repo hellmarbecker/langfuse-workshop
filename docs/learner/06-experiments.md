@@ -46,7 +46,7 @@ Open `scripts/run-dataset.ts`. The file is annotated with numbered comments (`//
 - Uses `dataset.runExperiment(...)` to roll all per-item traces into a single run row.
 - Attaches a `keyword_overlap` score per item by comparing `expectedKeywords` against the agent's answer.
 
-The traces produced are the same shape as production traces — same `dad-it-support-chat-turn` root, same OpenAI generation, same tool spans. We don't touch the script in this chapter.
+The traces produced are the same shape as production traces — same `dad-it-support-chat-turn` root, same Claude generation, same tool spans. We don't touch the script in this chapter.
 
 ### `dataset.runExperiment(...)` — the moving parts
 
@@ -58,7 +58,7 @@ await dataset.runExperiment({
   name: "Dad IT Support Agent experiment",
   runName,           // unique label for this run; shows up in the Runs tab
   description: "...",
-  metadata: { model: env.openaiModel },
+  metadata: { model: env.anthropicModel },
   maxConcurrency: 1, // run items one at a time
 
   // 2. task — runs the agent on one dataset item.
@@ -92,7 +92,7 @@ Three things to understand:
 
 Langfuse ships a **Correctness** LLM-as-a-judge template that compares an actual answer to an ideal answer and returns a score. We wire it up against the experiment runs so every item gets both a deterministic keyword score and a model-judged correctness score.
 
-> Fresh project check: Correctness is an LLM-as-a-judge evaluator too. If you did not configure the default evaluator model in session 4, do it now: open **Project Settings → LLM Connections**, add your OpenAI key, then return to **Evaluators → Set up evaluator** and save a default evaluator model such as `openai / gpt-4.1`. Keep the API key in the Langfuse secret field only; do not paste it into workshop transcripts or shared notes.
+> Fresh project check: Correctness is an LLM-as-a-judge evaluator too. If you did not configure the default evaluator model in session 4, do it now: open **Project Settings → LLM Connections**, add your Anthropic key, then return to **Evaluators → Set up evaluator** and save a default evaluator model such as `anthropic / claude-sonnet-4-6`. Keep the API key in the Langfuse secret field only; do not paste it into workshop transcripts or shared notes.
 
 1. In Langfuse, open **Evaluators → New evaluator** and pick the **Correctness** template.
 2. **Target** the runs from this dataset:

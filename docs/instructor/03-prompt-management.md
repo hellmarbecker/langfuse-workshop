@@ -17,7 +17,7 @@ Learner guide: [03 Prompt Management](../learner/03-prompt-management.md)
 
 1. Create `dad-it-support-agent` as a text prompt and label it `production`.
 2. Fetch it with `LangfuseClient`.
-3. Pass `langfusePrompt` into `observeOpenAI`.
+3. Pass the `prompt` attribute (name + version + `isFallback` from `langfusePrompt`) into the generation observation.
 4. Open a generation and show the Prompt badge.
 
 ## Watch for

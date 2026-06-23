@@ -1,37 +1,31 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { getSupportContext, searchGuides } from "./support-data";
 
 type ToolResult = Record<string, unknown>;
 
-export const TOOL_DEFINITIONS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+export const TOOL_DEFINITIONS: Anthropic.Tool[] = [
   {
-    type: "function",
-    function: {
-      name: "get_support_context",
-      description: "Look up Dad's known device setup so the answer stays grounded.",
-      parameters: {
-        type: "object",
-        properties: {},
-        additionalProperties: false
-      }
+    name: "get_support_context",
+    description: "Look up Dad's known device setup so the answer stays grounded.",
+    input_schema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false
     }
   },
   {
-    type: "function",
-    function: {
-      name: "search_help_library",
-      description: "Search the local help library for practical step-by-step device instructions.",
-      parameters: {
-        type: "object",
-        properties: {
-          question: {
-            type: "string",
-            description: "Dad's practical device question."
-          }
-        },
-        required: ["question"],
-        additionalProperties: false
-      }
+    name: "search_help_library",
+    description: "Search the local help library for practical step-by-step device instructions.",
+    input_schema: {
+      type: "object",
+      properties: {
+        question: {
+          type: "string",
+          description: "Dad's practical device question."
+        }
+      },
+      required: ["question"],
+      additionalProperties: false
     }
   }
 ];

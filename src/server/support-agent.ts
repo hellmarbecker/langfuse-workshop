@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import type { ChatMessage, ChatRequest, ChatResponse } from "../shared/types";
 import { env } from "./env";
 import { getSupportContext } from "./support-data";
@@ -20,79 +20,65 @@ Rules:
 - Do not invent button names or settings paths that were not confirmed by tool results.
 `;
 
-function toOpenAIMessages(
+function toAnthropicMessages(
   messages: ChatMessage[]
-): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+): Anthropic.MessageParam[] {
   return messages.map((message) => ({
     role: message.role,
     content: message.content
   }));
 }
 
-function readAssistantText(message: OpenAI.Chat.Completions.ChatCompletionMessage) {
-  if (typeof message.content === "string") {
-    return message.content.trim();
-  }
-  return "";
-}
-
-function parseToolArguments(argumentsText: string) {
-  try {
-    const parsed = JSON.parse(argumentsText);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>;
-    }
-    return {};
-  } catch {
-    return null;
-  }
+function readAssistantText(message: Anthropic.Message) {
+  return message.content
+    .filter((block): block is Anthropic.TextBlock => block.type === "text")
+    .map((block) => block.text)
+    .join("")
+    .trim();
 }
 
 export async function runSupportConversation(request: ChatRequest): Promise<ChatResponse> {
   const context = getSupportContext();
-  const openai = new OpenAI({ apiKey: env.openaiApiKey });
+  const anthropic = new Anthropic({ apiKey: env.anthropicApiKey });
 
-  const transcript: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-    { role: "system", content: SYSTEM_PROMPT },
-    ...toOpenAIMessages(request.messages)
-  ];
+  const transcript: Anthropic.MessageParam[] = toAnthropicMessages(request.messages);
   const usedTools = new Set<string>();
   let finalAnswer = "";
 
   for (let attempt = 0; attempt < 6; attempt += 1) {
-    const response = await openai.chat.completions.create({
-      model: env.openaiModel,
-      messages: transcript,
+    const response = await anthropic.messages.create({
+      model: env.anthropicModel,
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
       tools: TOOL_DEFINITIONS,
-      tool_choice: "auto"
+      messages: transcript
     });
 
-    const message = response.choices[0]?.message;
-    if (!message) {
-      throw new Error("OpenAI returned no assistant message.");
-    }
-    transcript.push(message as OpenAI.Chat.Completions.ChatCompletionMessageParam);
+    transcript.push({ role: "assistant", content: response.content });
 
-    const toolCalls = message.tool_calls ?? [];
-    if (toolCalls.length === 0) {
-      finalAnswer = readAssistantText(message);
+    const toolUses = response.content.filter(
+      (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
+    );
+    if (toolUses.length === 0) {
+      finalAnswer = readAssistantText(response);
       break;
     }
 
-    for (const toolCall of toolCalls) {
-      if (toolCall.type !== "function") continue;
-      usedTools.add(toolCall.function.name);
-      const parsedArguments = parseToolArguments(toolCall.function.arguments);
-      const result =
-        parsedArguments === null
-          ? { ok: false, error: `The tool arguments for ${toolCall.function.name} were not valid JSON.` }
-          : await executeTool(toolCall.function.name, parsedArguments);
-      transcript.push({
-        role: "tool",
-        tool_call_id: toolCall.id,
+    const toolResults: Anthropic.ToolResultBlockParam[] = [];
+    for (const toolUse of toolUses) {
+      usedTools.add(toolUse.name);
+      const input =
+        toolUse.input && typeof toolUse.input === "object"
+          ? (toolUse.input as Record<string, unknown>)
+          : {};
+      const result = await executeTool(toolUse.name, input);
+      toolResults.push({
+        type: "tool_result",
+        tool_use_id: toolUse.id,
         content: JSON.stringify(result)
       });
     }
+    transcript.push({ role: "user", content: toolResults });
   }
 
   if (!finalAnswer) {
@@ -106,7 +92,7 @@ export async function runSupportConversation(request: ChatRequest): Promise<Chat
     traceMeta: {
       contextId: context.id,
       contextLabel: context.label,
-      model: env.openaiModel
+      model: env.anthropicModel
     }
   };
 }

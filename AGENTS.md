@@ -36,8 +36,8 @@ Canonical checkpoint tags:
 Canonical progression:
 
 - `00-setup`: setup, keys, Langfuse Cloud EU, Langfuse CLI, Langfuse skill, and workshop framing on the same untraced app state as `01-base-app`.
-- `01-base-app`: working Dad IT Support Agent on the official OpenAI SDK, with one fixed Dad context, two local tools, and no Langfuse tracing yet.
-- `02-tracing`: learners add Langfuse tracing on top of the base app with OpenTelemetry setup, `observeOpenAI(new OpenAI())`, `observe(...)` wrappers around app/tool functions, and optional `propagateAttributes(...)` for user/session metadata.
+- `01-base-app`: working Dad IT Support Agent on the official Anthropic SDK (`@anthropic-ai/sdk`), with one fixed Dad context, two local tools, and no Langfuse tracing yet.
+- `02-tracing`: learners add Langfuse tracing on top of the base app with OpenTelemetry setup, a hand-opened `startObservation(..., { asType: "generation" })` around each `anthropic.messages.create(...)` call (the Anthropic SDK has no Langfuse auto-instrumentation wrapper), `observe(...)` wrappers around app/tool functions, and optional `propagateAttributes(...)` for user/session metadata.
 - `03-prompt-management`: learners replace the code-only prompt path with a Langfuse-managed prompt plus local fallback.
 - `04-monitoring`: starts from the traced app and stable message-array trace shape; this step is mostly evaluator design, variable mapping, and Langfuse UI setup.
 - `05-dataset`: adds a starter dataset that matches the app scope and uses message-array inputs plus expected outputs.
@@ -47,7 +47,7 @@ Canonical progression:
 
 What makes the checkpoints stitchable:
 
-- The OpenAI SDK is already in place before tracing starts, so step 2 is only about observability.
+- The Anthropic SDK is already in place before tracing starts, so step 2 is only about observability.
 - Prompt management falls back to the local prompt if the Langfuse prompt is absent.
 - Monitoring depends on stable message arrays on the agent/generation observations and the root `answer` field, not provider-specific internals.
 - Dataset and experiment scripts reuse the same app logic as the web UI.
